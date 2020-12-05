@@ -64,7 +64,7 @@ pub fn main() {
 
     let validation = Validation {
         hcl: Regex::new(r"^hcl:#[0-9a-f]{6}$").unwrap(),
-        hgt: Regex::new(r"^hgt:(1(5\d|[6-8]\d|9[0-3])cm|(59|6\d|7[0-6])in)$").unwrap(),
+        hgt: Regex::new(r"^hgt:(1([5-8]\d|9[0-3])cm|(59|6\d|7[0-6])in)$").unwrap(),
         pid: Regex::new(r"^pid:\d{9}$").unwrap(),
         ecl: Regex::new(r"^ecl:(amb|blu|brn|gry|grn|hzl|oth)$").unwrap(),
         eyr: Regex::new(r"^eyr:20(2\d|30)$").unwrap(),
