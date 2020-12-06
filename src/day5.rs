@@ -7,7 +7,12 @@ pub fn main() {
     let mut lines = io::BufReader::new(file)
         .lines()
         .map(|x| x.unwrap())
-        .map(|x| x.replace("F", "0").replace("B", "1").replace("R", "1").replace("L", "0"))
+        .map(|x| {
+            x.replace("F", "0")
+                .replace("B", "1")
+                .replace("R", "1")
+                .replace("L", "0")
+        })
         .map(|x| i32::from_str_radix(&x, 2).unwrap())
         .collect::<Vec<_>>();
 
