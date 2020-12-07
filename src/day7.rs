@@ -1,81 +1,88 @@
-use std::fs::File;
-use std::io::{self, BufRead};
 use regex::Regex;
 use std::collections::*;
+use std::fs::read_to_string;
 
 #[derive(Debug)]
-struct SubBags {
+struct SubBags<'a> {
     count: i32,
-    color: String,
+    color: &'a str,
 }
 
 pub fn main() {
-    let file = File::open("inputs/day7.in").unwrap();
+    let text = read_to_string("inputs/day7.in").unwrap();
     let re = Regex::new(r"(.*) bag(s?) contain(s?) (.*)").unwrap();
     let re2 = Regex::new(r"(\d) (.*) bag(s?)").unwrap();
 
-    let lines: HashMap<_, _> = io::BufReader::new(file)
-        .lines()
-        .map(|x| x.unwrap())
+    let lines: HashMap<_, _> = text
+        .trim()
+        .split("\n")
         .map(|x| {
-             let matches = re.captures(&x).unwrap();
-             let parts = matches.get(4).unwrap().as_str().split(", ");
+            let matches = re.captures(&x).unwrap();
+            let subbags = matches
+                .get(4)
+                .unwrap()
+                .as_str()
+                .split(", ")
+                .filter_map(|p| re2.captures(p))
+                .map(|subbag| SubBags {
+                    count: i32::from_str_radix(subbag.get(1).unwrap().as_str(), 10).unwrap(),
+                    color: subbag.get(2).unwrap().as_str(),
+                })
+                .collect::<Vec<_>>();
 
-             let herp = parts.filter_map(|p| re2.captures(p)).
-                 map(|subbag| SubBags {
-                     count: i32::from_str_radix(subbag.get(1).unwrap().as_str(), 10).unwrap(),
-                     color: subbag.get(2).unwrap().as_str().to_string(),
-                 }).
-                 collect::<Vec<_>>();
-
-             (
-                 matches.get(1).unwrap().as_str().to_string(),
-                 herp,
-             )
+            (matches.get(1).unwrap().as_str().to_string(), subbags)
         })
         .collect();
 
-    let mut has_shiny_gold : HashSet<String> = HashSet::new();
-    has_shiny_gold.insert("shiny gold".to_string());
-
-    loop {
-        let mut insertions = false;
-        for (color, contents) in lines.iter() {
-            if !has_shiny_gold.contains(color) {
-                if contents.iter().filter(|subbag| has_shiny_gold.contains(&subbag.color)).count() > 0 {
-                    has_shiny_gold.insert(color.to_string());
-                    insertions = true;
-                }
-            }
-        }
-
-        if !insertions {
-            break;
-        }
-    }
-
-    println!("{:?}", has_shiny_gold.len() - 1);
+    let mut has_shiny_gold: HashMap<String, bool> = HashMap::new();
+    has_shiny_gold.insert("shiny gold".to_string(), true);
+    let counts = lines
+        .iter()
+        .filter(|(color, _)| visit1(color, &lines, &mut has_shiny_gold))
+        .count()
+        - 1;
+    println!("{}", counts);
 
     let mut subbags: HashMap<String, i32> = HashMap::new();
-
-    let counts = visit(&"shiny gold".to_string(), &lines, &mut subbags) - 1;
-
+    let counts = visit2(&"shiny gold".to_string(), &lines, &mut subbags) - 1;
     println!("{:?}", counts);
 }
 
-fn visit(color: &String, subbags: &HashMap<String, Vec<SubBags>>, counts: &mut HashMap<String, i32>) -> i32 {
-    if counts.contains_key(color) {
-        return *counts.get(color).unwrap();
+fn visit1<'a>(
+    color: &'a str,
+    subbags: &HashMap<String, Vec<SubBags>>,
+    cache: &mut HashMap<String, bool>,
+) -> bool {
+    if cache.contains_key(color) {
+        return *cache.get(color).unwrap();
     }
 
-    let mut count = 1;
-    for subbag in subbags.get(color).unwrap().iter() {
-        println!("{} contains {} * {}", color, subbag.count, subbag.color);
-        count += subbag.count * visit(&subbag.color, subbags, counts);
+    let r = subbags
+        .get(color)
+        .unwrap()
+        .iter()
+        .any(|subbag| visit1(&subbag.color, subbags, cache));
+
+    cache.insert(color.to_string(), r);
+    r
+}
+
+fn visit2<'a>(
+    color: &'a str,
+    subbags: &HashMap<String, Vec<SubBags>>,
+    cache: &mut HashMap<String, i32>,
+) -> i32 {
+    if cache.contains_key(color) {
+        return *cache.get(color).unwrap();
     }
 
-    println!("{} ontains {}", color, count);
+    let r = 1 + subbags
+        .get(color)
+        .unwrap()
+        .iter()
+        .map(|subbag| subbag.count * visit2(&subbag.color, subbags, cache))
+        .sum::<i32>();
 
-    counts.insert(color.to_string(), count);
-    count
+    cache.insert(color.to_string(), r);
+    r
 }
