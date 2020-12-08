@@ -2,73 +2,127 @@ use regex::Regex;
 use std::collections::*;
 use std::fs::read_to_string;
 
-#[derive(Debug)]
-struct Instruction<'a> {
-    instruction: &'a str,
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+enum Op {
+    Nop,
+    Jmp,
+    Acc,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct Instruction {
+    op: Op,
     arg1: i32,
 }
 
-fn execute(instructions: &Vec<Instruction>) -> (i32, usize) {
-    let mut counter = 0;
-    let mut ip = 0;
-    let mut visited: HashSet<usize> = HashSet::new();
-    while ip < instructions.len() {
-        if visited.contains(&ip) {
-            return (counter, ip);
-        }
+#[derive(Debug, Default)]
+struct State {
+    ip: usize,
+    counter: i32,
+}
 
-        visited.insert(ip);
-        match instructions[ip].instruction {
-            "nop" => { ip += 1; }
-            "jmp" => { ip = (ip as i32 + instructions[ip].arg1) as usize; }
-            "acc" => { counter += instructions[ip].arg1; ip += 1; }
-            _ => { println!("invalid instruction: {:?}", instructions[ip]); panic!(); }
+impl State {
+    fn eval(self: &mut State, inst: &Instruction) {
+        self.ip = inst.next(self.ip);
+
+        if inst.op == Op::Acc {
+            self.counter += inst.arg1;
+        }
+    }
+}
+
+impl Instruction {
+    fn next(self: &Instruction, index: usize) -> usize {
+        match self.op {
+            Op::Jmp => (index as i32 + self.arg1) as usize,
+            Op::Acc => index + 1,
+            Op::Nop => index + 1,
         }
     }
 
-    return (counter, ip);
+    fn flip(self: &Instruction) -> Instruction {
+        match self.op {
+            Op::Jmp => Instruction { op: Op::Nop, arg1: self.arg1 },
+            Op::Nop => Instruction { op: Op::Jmp, arg1: self.arg1 },
+            Op::Acc => Instruction { op: Op::Acc, arg1: self.arg1 },
+        }
+    }
 }
 
+fn execute(instructions: &Vec<Instruction>) -> State {
+    let mut state = State::default();
+    let mut visited: HashSet<usize> = HashSet::new();
+    while state.ip < instructions.len() {
+        let inst = &instructions[state.ip];
+        if visited.contains(&state.ip) {
+            return state;
+        }
+
+        visited.insert(state.ip);
+        state.eval(inst);
+    }
+
+    return state;
+}
+
+fn dfs(index: usize, edges: &Vec<Vec<usize>>, visited: &mut HashSet<usize>) {
+    if visited.contains(&index) {
+        return;
+    }
+    visited.insert(index);
+
+    for edge in edges[index].iter() {
+        dfs(*edge, edges, visited);
+    }
+}
 
 pub fn main() {
     let text = read_to_string("inputs/day8.in").unwrap();
-    let re = Regex::new(r"(nop|acc|jmp) ([-+\d]+)").unwrap();
+    let re = Regex::new(r"(\w+) ([-+\d]+)").unwrap();
 
-    let mut instructions: Vec<_> = text
+    let instructions: Vec<_> = text
         .trim()
         .split("\n")
-        .map(|x| {
-            let matches = re.captures(&x).unwrap();
+        .filter_map(|x| re.captures(&x))
+        .map(|matches| {
+            let opcode = match &matches[1] {
+                "jmp" => Op::Jmp,
+                "acc" => Op::Acc,
+                "nop" => Op::Nop,
+                _ => { panic!(); }
+            };
 
             Instruction {
-                instruction: &matches.get(1).unwrap().as_str(),
+                op: opcode,
                 arg1: i32::from_str_radix(&matches[2], 10).unwrap(),
             }
         })
         .collect();
 
+    println!("{:?}", execute(&instructions).counter);
 
-    println!("{:?}", execute(&instructions).0);
+    let mut reverse: Vec<Vec<usize>> = Vec::new();
+    reverse.resize_with(instructions.len() + 1, Default::default);
 
-    for i in 0..instructions.len() {
-        let result = match instructions[i].instruction {
-            "nop" => {
-                instructions[i].instruction = "jmp";
-                let r = execute(&instructions);
-                instructions[i].instruction = "nop";
-                Some(r)
-            },
-            "jmp" => {
-                instructions[i].instruction = "nop";
-                let r = execute(&instructions);
-                instructions[i].instruction = "jmp";
-                Some(r)
-            },
-            _ => None,
-        };
-
-        if result.is_some() && result.unwrap().1 == instructions.len() {
-            println!("{:?}", result.unwrap().0);
-        }
+    for (index, inst) in instructions.iter().enumerate() {
+        reverse[inst.next(index)].push(index);
     }
+
+    let mut visited: HashSet<_> = HashSet::new();
+    dfs(instructions.len(), &reverse, &mut visited);
+
+    let mut state = State::default();
+    let mut flipped = false;
+    while state.ip < instructions.len() {
+        let mut inst = instructions[state.ip];
+
+        if !flipped && visited.contains(&inst.flip().next(state.ip)) {
+            inst = inst.flip();
+            flipped = true;
+        }
+
+        state.eval(&inst);
+    }
+
+    println!("{}", state.counter);
 }
