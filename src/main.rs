@@ -1,3 +1,7 @@
+#![feature(test)]
+
+extern crate test;
+
 mod day1;
 mod day2;
 mod day3;
@@ -6,6 +10,31 @@ mod day5;
 mod day6;
 mod day7;
 mod day8;
+
+#[bench]
+fn bench_day1(b: &mut test::Bencher) { b.iter(|| day1::main()); }
+
+#[bench]
+fn bench_day2(b: &mut test::Bencher) { b.iter(|| day2::main()); }
+
+#[bench]
+fn bench_day3(b: &mut test::Bencher) { b.iter(|| day3::main()); }
+
+#[bench]
+fn bench_day4(b: &mut test::Bencher) { b.iter(|| day4::main()); }
+
+#[bench]
+fn bench_day5(b: &mut test::Bencher) { b.iter(|| day5::main()); }
+
+#[bench]
+fn bench_day6(b: &mut test::Bencher) { b.iter(|| day6::main()); }
+
+#[bench]
+fn bench_day7(b: &mut test::Bencher) { b.iter(|| day7::main()); }
+
+#[bench]
+fn bench_day8(b: &mut test::Bencher) { b.iter(|| day8::main()); }
+
 
 fn main() {
     day1::main();
