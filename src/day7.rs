@@ -25,12 +25,12 @@ pub fn main() {
                 .split(", ")
                 .filter_map(|p| re2.captures(p))
                 .map(|subbag| SubBags {
-                    count: i32::from_str_radix(subbag.get(1).unwrap().as_str(), 10).unwrap(),
+                    count: i32::from_str_radix(&subbag[1], 10).unwrap(),
                     color: subbag.get(2).unwrap().as_str(),
                 })
                 .collect::<Vec<_>>();
 
-            (matches.get(1).unwrap().as_str().to_string(), subbags)
+            (matches[1].to_string(), subbags)
         })
         .collect();
 

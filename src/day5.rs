@@ -1,3 +1,4 @@
+use itertools::*;
 use std::fs::File;
 use std::io::{self, BufRead};
 
@@ -20,13 +21,13 @@ pub fn main() {
 
     lines.sort();
 
-    let mut previous = None;
-    for item in lines.iter() {
-        if previous.is_some() && item - previous.unwrap() > 1 {
-            println!("{}", item - 1);
-            break;
-        }
+    let missing = lines
+        .iter()
+        .tuple_windows()
+        .filter(|&(prev, current)| current - prev > 1)
+        .map(|(_, current)| current - 1)
+        .next()
+        .unwrap();
 
-        previous = Some(item);
-    }
+    println!("{}", missing);
 }
