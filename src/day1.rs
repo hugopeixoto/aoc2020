@@ -1,3 +1,4 @@
+use std::collections::*;
 use std::fs::File;
 use std::io::{self, BufRead};
 
@@ -10,22 +11,20 @@ pub fn main() {
         .map(|x| i32::from_str_radix(&x, 10).unwrap())
         .collect();
 
-    'part1: for a in lines.iter() {
-        for b in lines.iter() {
-            if a + b == 2020 {
-                println!("{}", a * b);
-                break 'part1;
-            }
+    let set: HashSet<_> = lines.iter().collect();
+
+    for a in lines.iter() {
+        if set.contains(&(2020 - a)) {
+            println!("{}", a * (2020 - a));
+            break;
         }
     }
 
     'part2: for a in lines.iter() {
         for b in lines.iter() {
-            for c in lines.iter() {
-                if a + b + c == 2020 {
-                    println!("{}", a * b * c);
-                    break 'part2;
-                }
+            if set.contains(&(2020 - a - b)) {
+                println!("{}", a * b * (2020 - a - b));
+                break 'part2;
             }
         }
     }

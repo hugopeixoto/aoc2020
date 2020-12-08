@@ -1,16 +1,11 @@
 use std::fs::read_to_string;
 
-fn hits(area: &str, height: usize, width: usize, delta: (usize, usize)) -> u32 {
+fn hits(area: &Vec<char>, height: usize, width: usize, delta: (usize, usize)) -> u32 {
     let mut position = (0, 0);
     let mut trees = 0;
 
     while position.1 < height {
-        if area
-            .chars()
-            .nth(position.1 * (width + 1) + position.0)
-            .unwrap()
-            == '#'
-        {
+        if area[position.1 * (width + 1) + position.0] == '#' {
             trees += 1;
         }
 
@@ -22,9 +17,9 @@ fn hits(area: &str, height: usize, width: usize, delta: (usize, usize)) -> u32 {
 }
 
 pub fn main() {
-    let area = read_to_string("inputs/day3.in").unwrap();
+    let area: Vec<_> = read_to_string("inputs/day3.in").unwrap().chars().collect();
 
-    let width = area.chars().position(|c| c == '\n').unwrap();
+    let width = area.iter().position(|c| *c == '\n').unwrap();
     let height = area.len() / (width + 1);
 
     println!("{}", hits(&area, height, width, (3, 1)));

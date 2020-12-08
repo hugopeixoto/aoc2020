@@ -42,9 +42,18 @@ impl Instruction {
 
     fn flip(self: &Instruction) -> Instruction {
         match self.op {
-            Op::Jmp => Instruction { op: Op::Nop, arg1: self.arg1 },
-            Op::Nop => Instruction { op: Op::Jmp, arg1: self.arg1 },
-            Op::Acc => Instruction { op: Op::Acc, arg1: self.arg1 },
+            Op::Jmp => Instruction {
+                op: Op::Nop,
+                arg1: self.arg1,
+            },
+            Op::Nop => Instruction {
+                op: Op::Jmp,
+                arg1: self.arg1,
+            },
+            Op::Acc => Instruction {
+                op: Op::Acc,
+                arg1: self.arg1,
+            },
         }
     }
 }
@@ -89,7 +98,9 @@ pub fn main() {
                 "jmp" => Op::Jmp,
                 "acc" => Op::Acc,
                 "nop" => Op::Nop,
-                _ => { panic!(); }
+                _ => {
+                    panic!();
+                }
             };
 
             Instruction {

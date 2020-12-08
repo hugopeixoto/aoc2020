@@ -1,67 +1,25 @@
-use regex::Regex;
-use std::fs::File;
-use std::io::{self, BufRead};
-
-struct Password {
-    low: i32,
-    high: i32,
-    character: char,
-    password: String,
-}
+use std::fs::read_to_string;
 
 pub fn main() {
-    let file = File::open("inputs/day2.in").unwrap();
-    let re = Regex::new(r"(\d*)-(\d*) (.): (.*)").unwrap();
+    let input = read_to_string("inputs/day2.in").unwrap();
 
-    let lines: Vec<_> = io::BufReader::new(file)
-        .lines()
-        .map(|x| x.unwrap())
+    let c = input
+        .trim()
+        .split("\n")
         .map(|x| {
-            let captures = re.captures(&x).unwrap();
-
-            Password {
-                low: i32::from_str_radix(captures.get(1).unwrap().as_str(), 10).unwrap(),
-                high: i32::from_str_radix(captures.get(2).unwrap().as_str(), 10).unwrap(),
-                character: captures.get(3).unwrap().as_str().chars().next().unwrap(),
-                password: captures.get(4).unwrap().as_str().clone().to_string(),
-            }
+            let (low, high, character, password) =
+                scan_fmt!(&x, "{}-{} {}: {}", i32, i32, char, String).unwrap();
+            (
+                (low..=high)
+                    .contains(&(password.chars().filter(|x| x == &character).count() as i32)),
+                (password.chars().nth((low - 1) as usize).unwrap() == character)
+                    != (password.chars().nth((high - 1) as usize).unwrap() == character),
+            )
         })
-        .collect();
+        .fold((0, 0), |a, b| {
+            (a.0 + if b.0 { 1 } else { 0 }, a.1 + if b.1 { 1 } else { 0 })
+        });
 
-    println!(
-        "{}",
-        lines
-            .iter()
-            .filter(|entry| {
-                (entry.low..=entry.high).contains(
-                    &(entry
-                        .password
-                        .chars()
-                        .filter(|x| x == &entry.character)
-                        .count() as i32),
-                )
-            })
-            .count()
-    );
-
-    println!(
-        "{}",
-        lines
-            .iter()
-            .filter(|entry| {
-                (entry
-                    .password
-                    .chars()
-                    .nth((entry.low - 1) as usize)
-                    .unwrap()
-                    == entry.character)
-                    != (entry
-                        .password
-                        .chars()
-                        .nth((entry.high - 1) as usize)
-                        .unwrap()
-                        == entry.character)
-            })
-            .count()
-    );
+    println!("{:?}", c.0);
+    println!("{:?}", c.1);
 }
