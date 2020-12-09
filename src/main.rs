@@ -12,6 +12,7 @@ mod day5;
 mod day6;
 mod day7;
 mod day8;
+mod day9;
 
 #[bench] fn bench_day1(b: &mut test::Bencher) { b.iter(|| day1::main()); }
 #[bench] fn bench_day2(b: &mut test::Bencher) { b.iter(|| day2::main()); }
@@ -21,6 +22,7 @@ mod day8;
 #[bench] fn bench_day6(b: &mut test::Bencher) { b.iter(|| day6::main()); }
 #[bench] fn bench_day7(b: &mut test::Bencher) { b.iter(|| day7::main()); }
 #[bench] fn bench_day8(b: &mut test::Bencher) { b.iter(|| day8::main()); }
+#[bench] fn bench_day9(b: &mut test::Bencher) { b.iter(|| day9::main()); }
 
 fn main() {
     day1::main();
@@ -31,4 +33,5 @@ fn main() {
     day6::main();
     day7::main();
     day8::main();
+    day9::main();
 }
