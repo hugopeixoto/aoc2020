@@ -1,5 +1,6 @@
-use std::fs::read_to_string;
 use itertools::*;
+use std::collections::*;
+use std::fs::read_to_string;
 
 pub fn main() {
     let text = read_to_string("inputs/day9.in").unwrap();
@@ -7,45 +8,43 @@ pub fn main() {
     let numbers: Vec<_> = text
         .trim()
         .split("\n")
-        .map(|x| x.parse::<u64>().unwrap())
+        .map(|x| x.parse::<i64>().unwrap())
         .collect();
-
-    println!("{}", numbers.len());
 
     let n = 25;
     let mut target = 0;
+    let mut seen: HashSet<i64> = numbers[0..n].iter().cloned().collect();
+
     for i in n..numbers.len() {
-        let mut found = false;
-        'out: for j in 0..n {
-            for k in 0..n {
-                if j != k && numbers[i - j - 1] + numbers[i - k - 1] == numbers[i] {
-                    found = true;
-                    break 'out;
-                }
-            }
-        }
+        seen.insert(numbers[i - 1]);
+
+        let found = seen
+            .iter()
+            .any(|&j| numbers[i] > j && seen.contains(&(numbers[i] - j)));
 
         if !found {
             target = numbers[i];
             break;
         }
+
+        seen.remove(&numbers[i - n]);
     }
 
     println!("{:?}", target);
 
-    let mut accum: Vec<_> = Vec::new();
-    accum.resize(numbers.len() + 1, 0);
-
+    let mut lower = 0;
+    let mut current = 0;
     for i in 0..numbers.len() {
-        accum[i + 1] = accum[i] + numbers[i];
-    }
+        current += numbers[i];
+        while current > target {
+            current -= numbers[lower];
+            lower += 1;
+        }
 
-    for i in 0..numbers.len() {
-        for j in (i+1)..numbers.len() {
-            if accum[j] - accum[i] == target {
-                if let MinMaxResult::MinMax(x, y) = numbers[i..j].iter().minmax() {
-                    println!("{}", x + y);
-                }
+        if current == target && lower != i {
+            if let MinMaxResult::MinMax(x, y) = numbers[lower..i].iter().minmax() {
+                println!("{}", x + y);
+                break;
             }
         }
     }
