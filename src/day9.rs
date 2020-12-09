@@ -18,9 +18,8 @@ pub fn main() {
     for i in n..numbers.len() {
         seen.insert(numbers[i - 1]);
 
-        let found = seen
-            .iter()
-            .any(|&j| numbers[i] > j && seen.contains(&(numbers[i] - j)));
+        let found = ((i - n)..i)
+            .any(|j| numbers[i] > numbers[j] && seen.contains(&(numbers[i] - numbers[j])));
 
         if !found {
             target = numbers[i];
