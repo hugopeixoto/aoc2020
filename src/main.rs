@@ -5,8 +5,6 @@ extern crate test;
 extern crate scan_fmt;
 
 mod day1;
-mod day10;
-mod day11;
 mod day2;
 mod day3;
 mod day4;
@@ -15,6 +13,8 @@ mod day6;
 mod day7;
 mod day8;
 mod day9;
+mod day10;
+mod day11;
 
 #[bench] fn bench_day1(b: &mut test::Bencher) { b.iter(|| day1::main()); }
 #[bench] fn bench_day2(b: &mut test::Bencher) { b.iter(|| day2::main()); }
@@ -26,6 +26,7 @@ mod day9;
 #[bench] fn bench_day8(b: &mut test::Bencher) { b.iter(|| day8::main()); }
 #[bench] fn bench_day9(b: &mut test::Bencher) { b.iter(|| day9::main()); }
 #[bench] fn bench_day10(b: &mut test::Bencher) { b.iter(|| day10::main()); }
+#[bench] fn bench_day11(b: &mut test::Bencher) { b.iter(|| day11::main()); }
 #[bench] fn bench_all(b: &mut test::Bencher) { b.iter(|| main()); }
 
 fn main() {

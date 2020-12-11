@@ -20,7 +20,7 @@ pub fn main() {
         previous = *n;
     }
 
-    println!("{} {} = {:?}", ones, threes, ones * threes);
+    println!("{:?}", ones * threes);
 
     let mut ways: Vec<u64> = Vec::new();
     ways.resize(numbers.len(), 0);

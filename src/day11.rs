@@ -7,124 +7,66 @@ struct Layout {
     height: i32,
 }
 
-fn print(layout: &Layout) {
-    for i in 0..layout.height {
-        let offset: usize = (i * layout.width) as usize;
-        let end = offset + layout.width as usize;
-        let line = layout.state[offset..end].iter().collect::<String>();
-        println!("{}", line);
+const DELTAS: [(i32, i32); 8] = [
+    (-1, -1),
+    (-1,  0),
+    (-1,  1),
+    ( 0, -1),
+    ( 0,  1),
+    ( 1, -1),
+    ( 1,  0),
+    ( 1,  1),
+];
+
+fn next(a: &Layout, b: &mut Layout, neighbors: &Vec<usize>, thresh: usize) -> bool {
+    let mut changed = false;
+    for i in 0..a.state.len() - 1 {
+        let occupied = (0..8)
+            .filter(|j| a.state[neighbors[i * 8 + j]] == '#')
+            .count();
+
+        if a.state[i] == 'L' && occupied == 0 {
+            b.state[i] = '#';
+            changed = true;
+        } else if a.state[i] == '#' && occupied >= thresh {
+            b.state[i] = 'L';
+            changed = true;
+        } else {
+            b.state[i] = a.state[i];
+        }
     }
+
+    changed
 }
 
-fn adjacent_seats2(i: usize, layout: &Layout) -> (i32, i32) {
-    let deltas: Vec<(i32, i32)> = vec![
-        (-1, -1),
-        (-1,  0),
-        (-1,  1),
-        ( 0, -1),
-        ( 0,  1),
-        ( 1, -1),
-        ( 1,  0),
-        ( 1,  1),
-    ];
+fn neighbors(layout: &Layout, thresh: usize) -> Vec<usize> {
+    let len = layout.state.len() - 1;
+    let mut ns: Vec<usize> = (0..len*8).collect();
 
-    let mut empty = 0;
-    let mut occupied = 0;
+    for i in 0..len {
+        let ix = i as i32 % layout.width;
+        let iy = i as i32 / layout.width;
 
-    let ix = i as i32 % layout.width;
-    let iy = i as i32 / layout.width;
-    for delta in deltas {
-        let mut px = ix;
-        let mut py = iy;
-        loop {
-            px = px + delta.0;
-            py = py + delta.1;
-            if (0..layout.width).contains(&px) && (0..layout.height).contains(&py) {
-                let j = px + py*layout.width;
+        for (di, delta) in DELTAS.iter().enumerate() {
+            ns[i * 8 + di] = len;
+            for m in 1i32..=(thresh as i32) {
+                let px = ix + m * delta.0;
+                let py = iy + m * delta.1;
+                if (0..layout.width).contains(&px) && (0..layout.height).contains(&py) {
+                    let j = (px + py * layout.width) as usize;
 
-                //println!("{} ({} x {}) -> {} ({} x {})", i, ix, iy, j, px, py);
-
-                if layout.state[j as usize] == '#' {
-                    occupied += 1;
+                    if layout.state[j] != '.' {
+                        ns[i * 8 + di] = j;
+                        break;
+                    }
+                } else {
                     break;
                 }
-                if layout.state[j as usize] == 'L' {
-                    empty += 1;
-                    break;
-                }
-            } else {
-                break;
             }
         }
     }
 
-    (empty, occupied)
-}
-
-fn adjacent_seats(i: usize, layout: &Layout) -> (i32, i32) {
-    let deltas: Vec<(i32, i32)> = vec![
-        (-1, -1),
-        (-1,  0),
-        (-1,  1),
-        ( 0, -1),
-        ( 0,  1),
-        ( 1, -1),
-        ( 1,  0),
-        ( 1,  1),
-    ];
-
-    let mut empty = 0;
-    let mut occupied = 0;
-
-    let ix = i as i32 % layout.width;
-    let iy = i as i32 / layout.width;
-    for delta in deltas {
-        let px = ix + delta.0;
-        let py = iy + delta.1;
-        if (0..layout.width).contains(&px) && (0..layout.height).contains(&py) {
-            let j = px + py*layout.width;
-
-            //println!("{} ({} x {}) -> {} ({} x {})", i, ix, iy, j, px, py);
-
-            match layout.state[j as usize] {
-                'L' => { empty += 1; },
-                '#' => { occupied += 1; },
-                _ => {},
-            }
-        }
-    }
-
-    (empty, occupied)
-}
-
-fn next(previous: &Layout) -> Layout {
-    let mut layout = previous.clone();
-
-    for i in 0..previous.state.len() {
-        let (_, occupied) = adjacent_seats(i, &previous);
-        if previous.state[i] == 'L' && occupied == 0 {
-            layout.state[i] = '#';
-        } else if previous.state[i] == '#' && occupied >= 4 {
-            layout.state[i] = 'L';
-        }
-    }
-
-    layout
-}
-
-fn next2(previous: &Layout) -> Layout {
-    let mut layout = previous.clone();
-
-    for i in 0..previous.state.len() {
-        let (_, occupied) = adjacent_seats2(i, &previous);
-        if previous.state[i] == 'L' && occupied == 0 {
-            layout.state[i] = '#';
-        } else if previous.state[i] == '#' && occupied >= 5 {
-            layout.state[i] = 'L';
-        }
-    }
-
-    layout
+    ns
 }
 
 pub fn main() {
@@ -132,21 +74,40 @@ pub fn main() {
 
     let width = text.chars().position(|c| c == '\n').unwrap();
     let height = text.len() / (width + 1);
-    let state: Vec<_> = text.chars().filter(|&c| c != '\n').collect();
 
-    let mut layout = Layout { state, width: width as i32, height: height as i32 };
+    let mut state: Vec<_> = text.chars().filter(|&c| c != '\n').collect();
+    state.push('.');
+
+    let layout = Layout {
+        state,
+        width: width as i32,
+        height: height as i32,
+    };
+
+    let ns = neighbors(&layout, 1);
+    let mut a = &mut layout.clone();
+    let mut b = &mut layout.clone();
 
     loop {
-        //println!("iterating");
-        let next = next2(&layout);
-        //print(&next);
-        //println!("---");
-
-        if next == layout { break; }
-        layout = next;
+        if !next(a, b, &ns, 4) { break; }
+        let c = b;
+        b = a;
+        a = c;
     }
 
-    // print(&layout);
+    println!("{}", a.state.iter().filter(|&&c| c == '#').count());
 
-    println!("{}", layout.state.iter().filter(|&&c| c == '#').count());
+    let ns = neighbors(&layout, layout.state.len());
+    let mut a = &mut layout.clone();
+    let mut b = &mut layout.clone();
+
+    loop {
+        if !next(a, b, &ns, 5) { break; }
+
+        let c = b;
+        b = a;
+        a = c;
+    }
+
+    println!("{}", a.state.iter().filter(|&&c| c == '#').count());
 }
