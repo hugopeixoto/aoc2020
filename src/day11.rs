@@ -21,8 +21,9 @@ const DELTAS: [(i32, i32); 8] = [
 fn next(a: &Layout, b: &mut Layout, neighbors: &Vec<usize>, thresh: usize) -> bool {
     let mut changed = false;
     for i in 0..a.state.len() - 1 {
-        let occupied = (0..8)
-            .filter(|j| a.state[neighbors[i * 8 + j]] == '#')
+        let occupied = neighbors[i*8..(i+1)*8]
+            .iter()
+            .filter(|&j| a.state[*j] == '#')
             .count();
 
         if a.state[i] == 'L' && occupied == 0 {

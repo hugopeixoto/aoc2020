@@ -4,41 +4,41 @@ extern crate test;
 #[macro_use]
 extern crate scan_fmt;
 
-mod day1;
-mod day2;
-mod day3;
-mod day4;
-mod day5;
-mod day6;
-mod day7;
-mod day8;
-mod day9;
+mod day01;
+mod day02;
+mod day03;
+mod day04;
+mod day05;
+mod day06;
+mod day07;
+mod day08;
+mod day09;
 mod day10;
 mod day11;
 
-#[bench] fn bench_day1(b: &mut test::Bencher) { b.iter(|| day1::main()); }
-#[bench] fn bench_day2(b: &mut test::Bencher) { b.iter(|| day2::main()); }
-#[bench] fn bench_day3(b: &mut test::Bencher) { b.iter(|| day3::main()); }
-#[bench] fn bench_day4(b: &mut test::Bencher) { b.iter(|| day4::main()); }
-#[bench] fn bench_day5(b: &mut test::Bencher) { b.iter(|| day5::main()); }
-#[bench] fn bench_day6(b: &mut test::Bencher) { b.iter(|| day6::main()); }
-#[bench] fn bench_day7(b: &mut test::Bencher) { b.iter(|| day7::main()); }
-#[bench] fn bench_day8(b: &mut test::Bencher) { b.iter(|| day8::main()); }
-#[bench] fn bench_day9(b: &mut test::Bencher) { b.iter(|| day9::main()); }
+#[bench] fn bench_day01(b: &mut test::Bencher) { b.iter(|| day01::main()); }
+#[bench] fn bench_day02(b: &mut test::Bencher) { b.iter(|| day02::main()); }
+#[bench] fn bench_day03(b: &mut test::Bencher) { b.iter(|| day03::main()); }
+#[bench] fn bench_day04(b: &mut test::Bencher) { b.iter(|| day04::main()); }
+#[bench] fn bench_day05(b: &mut test::Bencher) { b.iter(|| day05::main()); }
+#[bench] fn bench_day06(b: &mut test::Bencher) { b.iter(|| day06::main()); }
+#[bench] fn bench_day07(b: &mut test::Bencher) { b.iter(|| day07::main()); }
+#[bench] fn bench_day08(b: &mut test::Bencher) { b.iter(|| day08::main()); }
+#[bench] fn bench_day09(b: &mut test::Bencher) { b.iter(|| day09::main()); }
 #[bench] fn bench_day10(b: &mut test::Bencher) { b.iter(|| day10::main()); }
 #[bench] fn bench_day11(b: &mut test::Bencher) { b.iter(|| day11::main()); }
 #[bench] fn bench_all(b: &mut test::Bencher) { b.iter(|| main()); }
 
 fn main() {
-    day1::main();
-    day2::main();
-    day3::main();
-    day4::main();
-    day5::main();
-    day6::main();
-    day7::main();
-    day8::main();
-    day9::main();
+    day01::main();
+    day02::main();
+    day03::main();
+    day04::main();
+    day05::main();
+    day06::main();
+    day07::main();
+    day08::main();
+    day09::main();
     day10::main();
     day11::main();
 }
