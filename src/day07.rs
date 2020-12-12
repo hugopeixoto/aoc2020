@@ -10,8 +10,7 @@ struct SubBags {
 
 pub fn main() {
     let text = read_to_string("inputs/day7.in").unwrap();
-    let re = Regex::new(r"(.*) bag(s?) contain(s?) (.*)").unwrap();
-    let re2 = Regex::new(r"(\d) (.*) bag(s?)").unwrap();
+    let re = Regex::new(r"(\d) (.*) bag(s?)").unwrap();
 
     let mut color_index: HashMap<String, usize> = HashMap::new();
     let mut get_index = |color: String| {
@@ -28,13 +27,11 @@ pub fn main() {
         .trim()
         .split("\n")
         .map(|x| {
-            let matches = re.captures(&x).unwrap();
-            let subbags = matches
-                .get(4)
-                .unwrap()
-                .as_str()
+            let mut parts = x.split(" bags contain ");
+            let color = parts.next().unwrap();
+            let subbags = parts.next().unwrap()
                 .split(", ")
-                .filter_map(|p| re2.captures(p))
+                .filter_map(|p| re.captures(p))
                 .map(|subbag| SubBags {
                     count: i32::from_str_radix(&subbag.get(1).unwrap().as_str(), 10).unwrap(),
                     color: get_index(subbag.get(2).unwrap().as_str().to_string()),
@@ -42,7 +39,7 @@ pub fn main() {
                 .collect::<Vec<_>>();
 
             (
-                get_index(matches.get(1).unwrap().as_str().to_string()),
+                get_index(color.to_string()),
                 subbags,
             )
         })

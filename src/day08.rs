@@ -1,4 +1,3 @@
-use regex::Regex;
 use std::collections::*;
 use std::fs::read_to_string;
 
@@ -87,25 +86,23 @@ fn dfs(index: usize, edges: &Vec<Vec<usize>>, visited: &mut HashSet<usize>) {
 
 pub fn main() {
     let text = read_to_string("inputs/day8.in").unwrap();
-    let re = Regex::new(r"(\w+) ([-+\d]+)").unwrap();
 
     let instructions: Vec<_> = text
         .trim()
         .split("\n")
-        .filter_map(|x| re.captures(&x))
-        .map(|matches| {
-            let opcode = match &matches[1] {
+        .map(|line| {
+            let (opstr, arg1) = scan_fmt!(&line, "{} {}", String, i32).unwrap();
+
+            let op = match opstr.as_str() {
                 "jmp" => Op::Jmp,
                 "acc" => Op::Acc,
                 "nop" => Op::Nop,
-                _ => {
-                    panic!();
-                }
+                _ => panic!(),
             };
 
             Instruction {
-                op: opcode,
-                arg1: i32::from_str_radix(&matches[2], 10).unwrap(),
+                op,
+                arg1,
             }
         })
         .collect();
