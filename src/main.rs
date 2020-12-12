@@ -1,6 +1,7 @@
+#![feature(destructuring_assignment)]
 #![feature(test)]
-
 extern crate test;
+
 #[macro_use]
 extern crate scan_fmt;
 
@@ -15,6 +16,7 @@ mod day08;
 mod day09;
 mod day10;
 mod day11;
+mod day12;
 
 #[bench] fn bench_day01(b: &mut test::Bencher) { b.iter(|| day01::main()); }
 #[bench] fn bench_day02(b: &mut test::Bencher) { b.iter(|| day02::main()); }
@@ -27,6 +29,7 @@ mod day11;
 #[bench] fn bench_day09(b: &mut test::Bencher) { b.iter(|| day09::main()); }
 #[bench] fn bench_day10(b: &mut test::Bencher) { b.iter(|| day10::main()); }
 #[bench] fn bench_day11(b: &mut test::Bencher) { b.iter(|| day11::main()); }
+#[bench] fn bench_day12(b: &mut test::Bencher) { b.iter(|| day12::main()); }
 #[bench] fn bench_all(b: &mut test::Bencher) { b.iter(|| main()); }
 
 fn main() {
@@ -41,4 +44,5 @@ fn main() {
     day09::main();
     day10::main();
     day11::main();
+    day12::main();
 }
