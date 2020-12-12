@@ -15,8 +15,12 @@ pub fn main() {
     let mut ones = 0;
     let mut threes = 1;
     for n in numbers.iter() {
-        if n - previous == 1 { ones += 1; }
-        if n - previous == 3 { threes += 1; }
+        if n - previous == 1 {
+            ones += 1;
+        }
+        if n - previous == 3 {
+            threes += 1;
+        }
         previous = *n;
     }
 
@@ -26,10 +30,18 @@ pub fn main() {
     ways.resize(numbers.len(), 0);
 
     for (i, n) in numbers.iter().enumerate() {
-        if i >= 1 && n - numbers[i - 1] <= 3 { ways[i] += ways[i - 1]; }
-        if i >= 2 && n - numbers[i - 2] <= 3 { ways[i] += ways[i - 2]; }
-        if i >= 3 && n - numbers[i - 3] <= 3 { ways[i] += ways[i - 3]; }
-        if numbers[i] <= 3 { ways[i] += 1; }
+        if i >= 1 && n - numbers[i - 1] <= 3 {
+            ways[i] += ways[i - 1];
+        }
+        if i >= 2 && n - numbers[i - 2] <= 3 {
+            ways[i] += ways[i - 2];
+        }
+        if i >= 3 && n - numbers[i - 3] <= 3 {
+            ways[i] += ways[i - 3];
+        }
+        if numbers[i] <= 3 {
+            ways[i] += 1;
+        }
     }
 
     println!("{:?}", ways[ways.len() - 1]);
