@@ -31,6 +31,7 @@ mod day13;
 #[bench] fn bench_day10(b: &mut test::Bencher) { b.iter(|| day10::main()); }
 #[bench] fn bench_day11(b: &mut test::Bencher) { b.iter(|| day11::main()); }
 #[bench] fn bench_day12(b: &mut test::Bencher) { b.iter(|| day12::main()); }
+#[bench] fn bench_day13(b: &mut test::Bencher) { b.iter(|| day13::main()); }
 #[bench] fn bench_all(b: &mut test::Bencher) { b.iter(|| main()); }
 
 fn main() {

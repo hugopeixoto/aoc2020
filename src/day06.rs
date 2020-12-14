@@ -4,6 +4,7 @@ pub fn main() {
     let text = read_to_string("inputs/day6.in").unwrap();
     let mut p1 = 0;
     let mut p2 = 0;
+
     for entry in text.trim().split("\n\n") {
         let people = entry.split("\n").count();
 

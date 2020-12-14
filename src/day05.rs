@@ -1,25 +1,30 @@
 use itertools::*;
-use std::fs::File;
-use std::io::{self, BufRead};
+use std::fs::read_to_string;
 
 pub fn main() {
-    let file = File::open("inputs/day5.in").unwrap();
+    let input = read_to_string("inputs/day5.in").unwrap();
 
-    let mut lines = io::BufReader::new(file)
-        .lines()
-        .map(|x| x.unwrap())
+    let mut lines = input
+        .trim()
+        .split('\n')
         .map(|x| {
-            x.replace("F", "0")
-                .replace("B", "1")
-                .replace("R", "1")
-                .replace("L", "0")
+            let mut n = 0;
+
+            for c in x.chars() {
+                n = n*2 + match c {
+                    'B' => 1,
+                    'R' => 1,
+                    _ => 0,
+                };
+            }
+
+            n
         })
-        .map(|x| i32::from_str_radix(&x, 2).unwrap())
         .collect::<Vec<_>>();
 
-    println!("{}", lines.iter().max().unwrap());
-
     lines.sort();
+
+    println!("{}", lines[lines.len() - 1]);
 
     let missing = lines
         .iter()

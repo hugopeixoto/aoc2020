@@ -5,41 +5,37 @@ pub fn main() {
 
     let mut lines = text.trim().split("\n");
 
-    let k = lines.next().unwrap().parse::<u64>().unwrap();
+    let start_time = lines.next().unwrap().parse::<u64>().unwrap();
 
-    let poops = lines.next().unwrap().split(",").collect::<Vec<_>>();
+    let ids = lines.next().unwrap().split(",").collect::<Vec<_>>();
 
-    let buses = poops.iter().filter(|&x| *x != "x").map(|x| x.parse::<u64>().unwrap()).collect::<Vec<_>>();
-
-    let mut minimum = k;
+    let mut minimum = start_time;
     let mut minimal = 0;
-
-    for x in buses.iter() {
-        let v = (x - (k%x))%x;
-        if v < minimum {
-            minimum = v;
-            minimal = *x;
-        }
-    }
-
-    println!("{}", minimum * minimal);
 
     let mut delta = 0;
     let mut base = 0;
     let mut multiplier = 1;
-    for i in poops.iter() {
+
+    for i in ids.iter() {
         if *i != "x" {
             let curr = i.parse::<u64>().unwrap();
             for k in 0..curr {
-                if (base + multiplier*k + delta) % curr == 0 {
+                if (base + multiplier * k + delta) % curr == 0 {
                     base += multiplier * k;
                     multiplier *= curr;
                     break;
                 }
             }
+
+            let v = (curr - (start_time % curr)) % curr;
+            if v < minimum {
+                minimum = v;
+                minimal = curr;
+            }
         }
         delta += 1;
     }
 
-    println!("{} {}", base, multiplier);
+    println!("{}", minimum * minimal);
+    println!("{}", base);
 }
