@@ -3,11 +3,11 @@ use std::fs::read_to_string;
 pub fn main() {
     let text = read_to_string("inputs/day13.in").unwrap();
 
-    let mut lines = text.trim().split("\n");
+    let mut lines = text.trim().split('\n');
 
     let start_time = lines.next().unwrap().parse::<u64>().unwrap();
 
-    let ids = lines.next().unwrap().split(",").collect::<Vec<_>>();
+    let ids = lines.next().unwrap().split(',').collect::<Vec<_>>();
 
     let mut minimum = start_time;
     let mut minimal = 0;

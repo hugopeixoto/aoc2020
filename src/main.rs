@@ -18,6 +18,11 @@ mod day10;
 mod day11;
 mod day12;
 mod day13;
+mod day14;
+mod day15;
+mod day16;
+mod day17;
+mod day18;
 
 #[bench] fn bench_day01(b: &mut test::Bencher) { b.iter(|| day01::main()); }
 #[bench] fn bench_day02(b: &mut test::Bencher) { b.iter(|| day02::main()); }
@@ -32,6 +37,11 @@ mod day13;
 #[bench] fn bench_day11(b: &mut test::Bencher) { b.iter(|| day11::main()); }
 #[bench] fn bench_day12(b: &mut test::Bencher) { b.iter(|| day12::main()); }
 #[bench] fn bench_day13(b: &mut test::Bencher) { b.iter(|| day13::main()); }
+#[bench] fn bench_day14(b: &mut test::Bencher) { b.iter(|| day14::main()); }
+#[bench] fn bench_day15(b: &mut test::Bencher) { b.iter(|| day15::main()); }
+#[bench] fn bench_day16(b: &mut test::Bencher) { b.iter(|| day16::main()); }
+#[bench] fn bench_day17(b: &mut test::Bencher) { b.iter(|| day17::main()); }
+#[bench] fn bench_day18(b: &mut test::Bencher) { b.iter(|| day18::main()); }
 #[bench] fn bench_all(b: &mut test::Bencher) { b.iter(|| main()); }
 
 fn main() {
@@ -48,4 +58,9 @@ fn main() {
     day11::main();
     day12::main();
     day13::main();
+    day14::main();
+    day15::main();
+    day16::main();
+    day17::main();
+    day18::main();
 }
