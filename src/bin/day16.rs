@@ -3,15 +3,13 @@
 #![feature(test)]
 extern crate test;
 
-use std::collections::*;
-
-fn gen(mapping: &mut Vec<usize>, validities: &Vec<(usize, Vec<usize>)>, index: usize) -> bool {
+fn gen(mapping: &mut Vec<usize>, validities: &Vec<(usize, usize)>, index: usize) -> bool {
     if index == mapping.len() {
         return true;
     } else {
-        for i in validities[index].1.iter() {
-            if !mapping[0..index].contains(&i) {
-                mapping[index] = *i;
+        for i in 0..30 {
+            if (validities[index].1 & 1 << i) != 0 && !mapping[0..index].contains(&i) {
+                mapping[index] = i;
                 if gen(mapping, validities, index + 1) {
                     return true;
                 }
@@ -20,6 +18,15 @@ fn gen(mapping: &mut Vec<usize>, validities: &Vec<(usize, Vec<usize>)>, index: u
     }
 
     false
+}
+
+fn bits(mut n: usize) -> usize {
+    let mut b = 0;
+    while n > 0 {
+        b += n&1;
+        n /= 2;
+    }
+    b
 }
 
 pub fn day16(input: String) -> (usize, usize) {
@@ -46,9 +53,7 @@ pub fn day16(input: String) -> (usize, usize) {
         rules.push((name, rulevec));
     }
 
-    let mut yourticketsplit = yourticket.trim().split('\n');
-    yourticketsplit.next().unwrap();
-    let myticket = yourticketsplit.next().unwrap().split(',').map(|x| x.parse::<usize>().unwrap()).collect::<Vec<_>>();
+    let myticket = yourticket.trim().split('\n').last().unwrap().split(',').map(|x| x.parse::<usize>().unwrap()).collect::<Vec<_>>();
 
     let mut othertickets = nearbytickets.trim().split('\n');
     othertickets.next().unwrap();
@@ -57,19 +62,18 @@ pub fn day16(input: String) -> (usize, usize) {
 
     let mut errorrate = 0;
     for ticket in othertickets {
-        let values = ticket.split(',').map(|x| x.parse::<usize>().unwrap()).collect::<Vec<_>>();
-        let mut validities: Vec<HashSet<usize>> = vec![];
+        let mut validities: Vec<usize> = vec![];
 
         let mut invalid = false;
-        for value in values.iter() {
-            let v: HashSet<_> = rules
+        for strvalue in ticket.split(',') {
+            let value = strvalue.parse::<usize>().unwrap();
+
+            let v: usize = rules
                 .iter()
                 .enumerate()
-                .filter(|(_index, rule)| rule.1.iter().any(|range| range.contains(&value)))
-                .map(|(index, _)| index)
-                .collect();
+                .fold(0, |acc, (i, rule)| acc + ((rule.1.iter().any(|range| range.contains(&value)) as usize) << i));
 
-            if v.is_empty() {
+            if v == 0 {
                 errorrate += value;
                 invalid = true;
             }
@@ -82,36 +86,33 @@ pub fn day16(input: String) -> (usize, usize) {
         }
     }
 
-    let mut ticketvalidities: Vec<HashSet<usize>> = vec![];
-    for &value in myticket.iter() {
-        let v = rules.iter()
+    let mut ticketvalidities: Vec<(usize, usize)> = vec![];
+    for (idx, &value) in myticket.iter().enumerate() {
+        let v: usize = rules
+            .iter()
             .enumerate()
-            .filter(|(_index, rule)| rule.1.iter().any(|range| range.contains(&value)))
-            .map(|(index, _)| index)
-            .collect();
+            .fold(0, |acc, (i, rule)| acc + ((rule.1.iter().any(|range| range.contains(&value)) as usize) << i));
 
-        ticketvalidities.push(v);
+        ticketvalidities.push((idx, v));
     }
 
     for tv in othervalidticketsets.iter() {
         for (i, tvs) in tv.iter().enumerate() {
-            ticketvalidities[i] = ticketvalidities[i].intersection(tvs).map(|&v| v).collect();
+            ticketvalidities[i].1 = ticketvalidities[i].1 & tvs;
         }
     }
 
-    let mut tvvec: Vec<(usize, Vec<usize>)> = ticketvalidities.iter().map(|tvs| tvs.iter().map(|&v| v).collect()).enumerate().collect();
-
-    tvvec.sort_by_key(|(_, v)| v.len());
+    ticketvalidities.sort_by_key(|&(_, v)| bits(v));
 
     let mut mapping = vec![];
     mapping.resize(myticket.len(), 0);
 
-    gen(&mut mapping, &tvvec, 0);
+    gen(&mut mapping, &ticketvalidities, 0);
 
     let mut values = 1;
     for (i, m) in mapping.iter().enumerate() {
         if rules[*m].0.starts_with("departure") {
-            values *= myticket[tvvec[i].0];
+            values *= myticket[ticketvalidities[i].0];
         }
     }
 
