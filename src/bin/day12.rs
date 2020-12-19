@@ -1,4 +1,7 @@
-use std::fs::read_to_string;
+#![feature(destructuring_assignment)]
+#![feature(or_patterns)]
+#![feature(test)]
+extern crate test;
 
 struct Part1 {
     position: (i32, i32),
@@ -63,13 +66,11 @@ impl Part2 {
     }
 }
 
-pub fn main() {
-    let text = read_to_string("inputs/day12.in").unwrap();
-
-    let instructions = text.trim().split("\n").map(|line| {
+pub fn day12(input: String) -> (i32, i32) {
+    let instructions = input.lines().map(|line| {
         (
             line.chars().next().unwrap(),
-            i32::from_str_radix(&line[1..], 10).unwrap(),
+            line[1..].parse::<i32>().unwrap(),
         )
     });
 
@@ -88,6 +89,7 @@ pub fn main() {
         p2.next(direction, delta);
     }
 
-    println!("{}", p1.position.0.abs() + p1.position.1.abs());
-    println!("{}", p2.position.0.abs() + p1.position.1.abs());
+    (p1.position.0.abs() + p1.position.1.abs(), p2.position.0.abs() + p2.position.1.abs())
 }
+
+aoc2020::day!(day12, "day12.in", bench_day12);

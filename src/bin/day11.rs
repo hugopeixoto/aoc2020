@@ -1,4 +1,7 @@
-use std::fs::read_to_string;
+#![feature(destructuring_assignment)]
+#![feature(or_patterns)]
+#![feature(test)]
+extern crate test;
 
 const DELTAS: [(i32, i32); 8] = [
     (-1, -1),
@@ -88,16 +91,14 @@ fn neighbors2(state: &Vec<char>, width: usize, height: usize, indexes: &Vec<usiz
     ns
 }
 
-pub fn main() {
-    let text = read_to_string("inputs/day11.in").unwrap();
-
-    let width = text.chars().position(|c| c == '\n').unwrap();
-    let height = text.len() / (width + 1);
+pub fn day11(input: String) -> (usize, usize) {
+    let width = input.chars().position(|c| c == '\n').unwrap();
+    let height = input.len() / (width + 1);
 
     let mut expanded_state: Vec<char> = vec![];
     expanded_state.resize((width + 1) * (height + 2) + 1, '.');
 
-    for (i, c) in text.chars().enumerate() {
+    for (i, c) in input.chars().enumerate() {
         expanded_state[i + width + 1 + 1] = c;
     }
 
@@ -123,7 +124,7 @@ pub fn main() {
         (a, b) = (b, a);
     }
 
-    println!("{}", a.iter().filter(|&&c| c).count());
+    let p1 = a.iter().filter(|&&c| c).count();
 
     let mut a = &mut compact_state.clone();
     let mut b = &mut compact_state.clone();
@@ -132,5 +133,9 @@ pub fn main() {
         (a, b) = (b, a);
     }
 
-    println!("{}", a.iter().filter(|&&c| c).count());
+    let p2 = a.iter().filter(|&&c| c).count();
+
+    (p1, p2)
 }
+
+aoc2020::day!(day11, "day11.in", bench_day11);

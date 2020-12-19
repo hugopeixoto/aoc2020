@@ -1,4 +1,7 @@
-use std::fs::read_to_string;
+#![feature(destructuring_assignment)]
+#![feature(or_patterns)]
+#![feature(test)]
+extern crate test;
 
 pub fn index4(x: usize, y: usize, z: i32, w: i32, width: usize, height: usize, depth: usize, _wefth: usize) -> usize {
     x + y * width + z.abs() as usize * width * height + w.abs() as usize * width * height * depth
@@ -96,10 +99,9 @@ pub fn count4(a: &mut Vec<bool>, width: usize, height: usize, depth: usize, weft
     t
 }
 
-pub fn main() {
-    let text = read_to_string("inputs/day17.in").unwrap();
-    let z0width = text.split('\n').next().unwrap().len();
-    let z0height = text.len() / (z0width + 1);
+pub fn day17(input: String) -> (usize, usize) {
+    let z0width = input.lines().next().unwrap().len();
+    let z0height = input.len() / (z0width + 1);
 
     let turns = 6;
     let width = z0width + 2*turns;
@@ -110,7 +112,7 @@ pub fn main() {
     let mut state: Vec<bool> = vec![];
     state.resize(width * height * depth * wefth, false);
 
-    for (i, c) in text.chars().enumerate() {
+    for (i, c) in input.chars().enumerate() {
         if c != '\n' {
             let x = i % (z0width + 1);
             let y = i / (z0width + 1);
@@ -126,14 +128,14 @@ pub fn main() {
         (a, b) = (b, a);
     }
 
-    println!("{}", count4(a, width, height, depth, wefth));
+    let p1 = count4(a, width, height, depth, wefth);
 
     let wefth = 1 + turns;
 
     let mut state: Vec<bool> = vec![];
     state.resize(width * height * depth * wefth, false);
 
-    for (i, c) in text.chars().enumerate() {
+    for (i, c) in input.chars().enumerate() {
         if c != '\n' {
             let x = i % (z0width + 1);
             let y = i / (z0width + 1);
@@ -149,5 +151,9 @@ pub fn main() {
         (a, b) = (b, a);
     }
 
-    println!("{}", count4(a, width, height, depth, wefth));
+    let p2 = count4(a, width, height, depth, wefth);
+
+    (p1, p2)
 }
+
+aoc2020::day!(day17, "day17.in", bench_day17);

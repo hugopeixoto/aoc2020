@@ -1,13 +1,14 @@
-use std::fs::read_to_string;
+#![feature(destructuring_assignment)]
+#![feature(or_patterns)]
+#![feature(test)]
+extern crate test;
 
-pub fn main() {
-    let text = read_to_string("inputs/day15.in").unwrap();
-
+pub fn day15(input: String) -> (usize, usize) {
     let mut indexes = vec![];
-    indexes.resize(30000000, -1);
+    indexes.resize(30_000_000, -1);
 
     let mut count = 0;
-    for (i, c) in text.trim().split(',').enumerate() {
+    for (i, c) in input.trim().split(',').enumerate() {
         let n = c.parse::<usize>().unwrap();
         indexes[n] = i as i32;
         count += 1;
@@ -23,9 +24,9 @@ pub fn main() {
         count += 1;
     }
 
-    println!("{}", next);
+    let p1 = next;
 
-    while count < 30000000 - 1 {
+    while count < 30_000_000 - 1 {
         let n = next;
 
         next = if indexes[n] < 0 { 0 } else { count - indexes[n] as usize };
@@ -33,5 +34,9 @@ pub fn main() {
         count += 1;
     }
 
-    println!("{}", next);
+    let p2 = next;
+
+    (p1, p2)
 }
+
+aoc2020::day!(day15, "day15.in", bench_day15);

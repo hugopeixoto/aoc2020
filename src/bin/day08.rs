@@ -1,5 +1,11 @@
+#![feature(or_patterns)]
+#![feature(test)]
+extern crate test;
+
+#[macro_use]
+extern crate scan_fmt;
+
 use std::collections::*;
-use std::fs::read_to_string;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 enum Op {
@@ -73,23 +79,20 @@ fn execute(instructions: &Vec<Instruction>) -> State {
     return state;
 }
 
-fn dfs(index: usize, edges: &Vec<Vec<usize>>, visited: &mut HashSet<usize>) {
-    if visited.contains(&index) {
+fn dfs(index: usize, edges: &Vec<Vec<usize>>, visited: &mut Vec<bool>) {
+    if visited[index] {
         return;
     }
-    visited.insert(index);
+    visited[index] = true;
 
     for edge in edges[index].iter() {
         dfs(*edge, edges, visited);
     }
 }
 
-pub fn main() {
-    let text = read_to_string("inputs/day8.in").unwrap();
-
-    let instructions: Vec<_> = text
-        .trim()
-        .split("\n")
+pub fn day08(input: String) -> (usize, usize) {
+    let instructions: Vec<_> = input
+        .lines()
         .map(|line| {
             let (opstr, arg1) = scan_fmt!(&line, "{} {}", String, i32).unwrap();
 
@@ -107,7 +110,7 @@ pub fn main() {
         })
         .collect();
 
-    println!("{:?}", execute(&instructions).counter);
+    let p1 = execute(&instructions).counter;
 
     let mut reverse: Vec<Vec<usize>> = Vec::new();
     reverse.resize_with(instructions.len() + 1, Default::default);
@@ -116,7 +119,8 @@ pub fn main() {
         reverse[inst.next(index)].push(index);
     }
 
-    let mut visited: HashSet<_> = HashSet::new();
+    let mut visited = vec![];
+    visited.resize(1 + instructions.len(), false);
     dfs(instructions.len(), &reverse, &mut visited);
 
     let mut state = State::default();
@@ -124,7 +128,7 @@ pub fn main() {
     while state.ip < instructions.len() {
         let mut inst = instructions[state.ip];
 
-        if !flipped && visited.contains(&inst.flip().next(state.ip)) {
+        if !flipped && visited[inst.flip().next(state.ip)] {
             inst = inst.flip();
             flipped = true;
         }
@@ -132,5 +136,9 @@ pub fn main() {
         state.eval(&inst);
     }
 
-    println!("{}", state.counter);
+    let p2 = state.counter;
+
+    (p1 as usize, p2 as usize)
 }
+
+aoc2020::day!(day08, "day08.in", bench_day08);

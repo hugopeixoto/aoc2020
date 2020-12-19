@@ -1,4 +1,7 @@
-use std::fs::read_to_string;
+#![feature(destructuring_assignment)]
+#![feature(or_patterns)]
+#![feature(test)]
+extern crate test;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 enum Ops {
@@ -69,10 +72,8 @@ fn eval(postfix: &Vec<Ops>) -> u64 {
     stack[0]
 }
 
-pub fn main() {
-    let text = read_to_string("inputs/day18.in").unwrap();
-
-    let expr = format!("({})", text.trim().replace("\n", ") + ("));
+pub fn day18(input: String) -> (u64, u64) {
+    let expr = format!("({})", input.trim().replace("\n", ") + ("));
 
     let mut infix = Vec::with_capacity(expr.len());
     for c in expr.chars() {
@@ -89,6 +90,7 @@ pub fn main() {
     let p1 = eval(&infix2postfix(&infix, same_precedence));
     let p2 = eval(&infix2postfix(&infix, add_higher_precedence));
 
-    println!("{}", p1);
-    println!("{}", p2);
+    (p1, p2)
 }
+
+aoc2020::day!(day18, "day18.in", bench_day18);

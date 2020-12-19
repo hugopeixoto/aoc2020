@@ -1,5 +1,7 @@
+#![feature(test)]
+extern crate test;
+
 use regex::Regex;
-use std::fs::read_to_string;
 
 struct Validation {
     hcl: regex::Regex,
@@ -21,9 +23,7 @@ fn is_valid(passport: &str, validation: &Validation) -> bool {
         && validation.byr.is_match(passport)
 }
 
-pub fn main() {
-    let text = read_to_string("inputs/day4.in").unwrap();
-
+pub fn day04(input: String) -> (usize, usize) {
     let p1 = Validation {
         hcl: Regex::new(r"(?m)\bhcl:").unwrap(),
         hgt: Regex::new(r"(?m)\bhgt:").unwrap(),
@@ -44,17 +44,15 @@ pub fn main() {
         byr: Regex::new(r"(?m)\bbyr:(19[2-9]\d|200[0-2])\b").unwrap(),
     };
 
-    println!(
-        "{}",
-        text.split("\n\n")
+    let p1 = input.split("\n\n")
             .filter(|passport| is_valid(passport, &p1))
-            .count()
-    );
+            .count();
 
-    println!(
-        "{}",
-        text.split("\n\n")
+    let p2 = input.split("\n\n")
             .filter(|passport| is_valid(passport, &p2))
-            .count()
-    );
+            .count();
+
+    (p1, p2)
 }
+
+aoc2020::day!(day04, "day04.in", bench_day04);

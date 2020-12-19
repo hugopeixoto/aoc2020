@@ -1,13 +1,13 @@
+#![feature(or_patterns)]
+#![feature(test)]
+extern crate test;
+
 use itertools::*;
 use std::collections::*;
-use std::fs::read_to_string;
 
-pub fn main() {
-    let text = read_to_string("inputs/day9.in").unwrap();
-
-    let numbers: Vec<_> = text
-        .trim()
-        .split("\n")
+pub fn day09(input: String) -> (i64, i64) {
+    let numbers: Vec<_> = input
+        .lines()
         .map(|x| x.parse::<i64>().unwrap())
         .collect();
 
@@ -29,7 +29,7 @@ pub fn main() {
         seen.remove(&numbers[i - n]);
     }
 
-    println!("{:?}", target);
+    let p1 = target;
 
     let mut lower = 0;
     let mut current = 0;
@@ -42,9 +42,12 @@ pub fn main() {
 
         if current == target && lower != i {
             if let MinMaxResult::MinMax(x, y) = numbers[lower..i].iter().minmax() {
-                println!("{}", x + y);
-                break;
+                return (p1, x + y);
             }
         }
     }
+
+    (0, 0)
 }
+
+aoc2020::day!(day09, "day09.in", bench_day09);

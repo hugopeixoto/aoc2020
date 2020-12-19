@@ -1,17 +1,17 @@
-use std::fs::File;
-use std::io::{self, BufRead};
+#![feature(test)]
+extern crate test;
 
-pub fn main() {
-    let file = File::open("inputs/day1.in").unwrap();
-
-    let lines: Vec<_> = io::BufReader::new(file)
+pub fn day01(input: String) -> (usize, usize) {
+    let lines: Vec<_> = input
         .lines()
-        .map(|x| x.unwrap())
-        .map(|x| usize::from_str_radix(&x, 10).unwrap())
+        .map(|x| x.parse::<usize>().unwrap())
         .collect();
 
+    let mut p1 = 0;
+    let mut p2 = 0;
+
     let mut set = vec![];
-    set.resize(2020*2, false);
+    set.resize(2020, false);
 
     for &n in lines.iter() {
         set[n] = true;
@@ -19,7 +19,7 @@ pub fn main() {
 
     for &a in lines.iter() {
         if set[2020 - a] {
-            println!("{}", a * (2020 - a));
+            p1 = a * (2020 - a);
             break;
         }
     }
@@ -27,9 +27,13 @@ pub fn main() {
     'part2: for &a in lines.iter() {
         for &b in lines.iter() {
             if a + b <= 2020 && set[2020 - (a + b)] {
-                println!("{}", a * b * (2020 - a - b));
+                p2 = a * b * (2020 - a - b);
                 break 'part2;
             }
         }
     }
+
+    (p1, p2)
 }
+
+aoc2020::day!(day01, "day01.in", bench_day01);

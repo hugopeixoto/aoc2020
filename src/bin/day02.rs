@@ -1,8 +1,7 @@
-use std::fs::read_to_string;
+#![feature(test)]
+extern crate test;
 
-pub fn main() {
-    let input = read_to_string("inputs/day2.in").unwrap();
-
+pub fn day02(input: String) -> (usize, usize) {
     let mut p1 = 0;
     let mut p2 = 0;
 
@@ -50,6 +49,7 @@ pub fn main() {
         }
     }
 
-    println!("{:?}", p1);
-    println!("{:?}", p2);
+    (p1, p2)
 }
+
+aoc2020::day!(day02, "day02.in", bench_day02);

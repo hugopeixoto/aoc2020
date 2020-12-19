@@ -1,4 +1,5 @@
-use std::fs::read_to_string;
+#![feature(test)]
+extern crate test;
 
 fn hits(area: &Vec<char>, height: usize, width: usize, delta: (usize, usize)) -> u32 {
     let mut position = (0, 0);
@@ -16,19 +17,20 @@ fn hits(area: &Vec<char>, height: usize, width: usize, delta: (usize, usize)) ->
     trees
 }
 
-pub fn main() {
-    let area: Vec<_> = read_to_string("inputs/day3.in").unwrap().chars().collect();
+pub fn day03(input: String) -> (u32, u32) {
+    let area: Vec<_> = input.chars().collect();
 
     let width = area.iter().position(|c| *c == '\n').unwrap();
     let height = area.len() / (width + 1);
 
-    println!("{}", hits(&area, height, width, (3, 1)));
+    let p1 = hits(&area, height, width, (3, 1));
 
-    println!(
-        "{}",
-        vec![(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)]
+    let p2 = vec![(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)]
             .into_iter()
             .map(|delta| hits(&area, height, width, delta))
-            .product::<u32>(),
-    );
+            .product::<u32>();
+
+    (p1, p2)
 }
+
+aoc2020::day!(day03, "day03.in", bench_day03);

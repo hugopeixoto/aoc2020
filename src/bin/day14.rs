@@ -1,4 +1,8 @@
-use std::fs::read_to_string;
+#![feature(destructuring_assignment)]
+#![feature(or_patterns)]
+#![feature(test)]
+extern crate test;
+
 use std::collections::*;
 
 fn gen2(mask: &[char], addr: u64, x: u64, results: &mut Vec<u64>) {
@@ -27,9 +31,7 @@ fn gen(mask: &Vec<char>, addr: u64) -> Vec<u64> {
     r
 }
 
-pub fn main() {
-    let text = read_to_string("inputs/day14.in").unwrap();
-
+pub fn day14(input: String) -> (u64, u64) {
     let mut memory: HashMap<u64, u64> = HashMap::new();
     let mut memory2: HashMap<u64, u64> = HashMap::new();
 
@@ -37,7 +39,7 @@ pub fn main() {
     let mut mask_or = 0;
     let mut mask_floating = vec![];
 
-    for line in text.trim().split('\n') {
+    for line in input.lines() {
         if line.starts_with("mask = ") {
             let poop = line.split(" = ").nth(1).unwrap();
 
@@ -62,6 +64,10 @@ pub fn main() {
         }
     }
 
-    println!("{:?}", memory.iter().fold(0, |acc, (_,v)| acc + v));
-    println!("{:?}", memory2.iter().fold(0, |acc, (_,v)| acc + v));
+    (
+        memory.iter().fold(0, |acc, (_,v)| acc + v),
+        memory2.iter().fold(0, |acc, (_,v)| acc + v)
+    )
 }
+
+aoc2020::day!(day14, "day14.in", bench_day14);

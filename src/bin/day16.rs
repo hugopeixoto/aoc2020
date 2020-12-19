@@ -1,4 +1,8 @@
-use std::fs::read_to_string;
+#![feature(destructuring_assignment)]
+#![feature(or_patterns)]
+#![feature(test)]
+extern crate test;
+
 use std::collections::*;
 
 fn gen(mapping: &mut Vec<usize>, validities: &Vec<(usize, Vec<usize>)>, index: usize) -> bool {
@@ -18,10 +22,8 @@ fn gen(mapping: &mut Vec<usize>, validities: &Vec<(usize, Vec<usize>)>, index: u
     false
 }
 
-pub fn main() {
-    let text = read_to_string("inputs/day16.in").unwrap();
-
-    let mut parts = text.trim().split("\n\n");
+pub fn day16(input: String) -> (usize, usize) {
+    let mut parts = input.trim().split("\n\n");
 
     let ranges = parts.next().unwrap();
     let yourticket = parts.next().unwrap();
@@ -101,8 +103,6 @@ pub fn main() {
 
     tvvec.sort_by_key(|(_, v)| v.len());
 
-    println!("{:?}", ticketvalidities);
-
     let mut mapping = vec![];
     mapping.resize(myticket.len(), 0);
 
@@ -115,6 +115,7 @@ pub fn main() {
         }
     }
 
-    println!("{}", errorrate);
-    println!("{}", values);
+    (errorrate, values)
 }
+
+aoc2020::day!(day16, "day16.in", bench_day16);

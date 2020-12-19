@@ -1,11 +1,10 @@
-use std::fs::read_to_string;
+#![feature(or_patterns)]
+#![feature(test)]
+extern crate test;
 
-pub fn main() {
-    let text = read_to_string("inputs/day10.in").unwrap();
-
-    let mut numbers: Vec<_> = text
-        .trim()
-        .split("\n")
+pub fn day10(input: String) -> (usize, u64) {
+    let mut numbers: Vec<_> = input
+        .lines()
         .map(|x| x.parse::<u64>().unwrap())
         .collect();
 
@@ -24,9 +23,9 @@ pub fn main() {
         previous = *n;
     }
 
-    println!("{:?}", ones * threes);
+    let p1 = ones * threes;
 
-    let mut ways: Vec<u64> = Vec::new();
+    let mut ways = vec![];
     ways.resize(numbers.len(), 0);
 
     for (i, n) in numbers.iter().enumerate() {
@@ -44,5 +43,7 @@ pub fn main() {
         }
     }
 
-    println!("{:?}", ways[ways.len() - 1]);
+    (p1, ways[ways.len() - 1])
 }
+
+aoc2020::day!(day10, "day10.in", bench_day10);

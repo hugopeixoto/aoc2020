@@ -1,9 +1,10 @@
-use std::fs::read_to_string;
+#![feature(destructuring_assignment)]
+#![feature(or_patterns)]
+#![feature(test)]
+extern crate test;
 
-pub fn main() {
-    let text = read_to_string("inputs/day13.in").unwrap();
-
-    let mut lines = text.trim().split('\n');
+pub fn day13(input: String) -> (u64, u64) {
+    let mut lines = input.lines();
 
     let start_time = lines.next().unwrap().parse::<u64>().unwrap();
 
@@ -36,6 +37,7 @@ pub fn main() {
         delta += 1;
     }
 
-    println!("{}", minimum * minimal);
-    println!("{}", base);
+    (minimum * minimal, base)
 }
+
+aoc2020::day!(day13, "day13.in", bench_day13);
