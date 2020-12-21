@@ -22,6 +22,6 @@ test bench_day16 ... bench:     528,391 ns/iter (+/- 12,837)
 test bench_day17 ... bench:  13,506,212 ns/iter (+/- 117,171)
 test bench_day18 ... bench:     377,644 ns/iter (+/- 1,952)
 test bench_day19 ... bench: 421,201,520 ns/iter (+/- 28,278,842)
-test bench_day20 ... bench:   5,164,431 ns/iter (+/- 28,424)
+test bench_day20 ... bench:     346,543 ns/iter (+/- 13,553)
 test bench_day21 ... bench:     322,531 ns/iter (+/- 4,642)
 ```
