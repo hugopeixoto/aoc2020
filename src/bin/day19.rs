@@ -70,7 +70,9 @@ pub fn day19(input: String) -> (usize, usize) {
 
     let mut p2 = 0;
 
-    let regexps = (0..100).map(|k| {
+    let k = messagesstr.lines().map(|x| x.len()).max().unwrap();
+
+    let regexps = (0..=k).map(|k| {
         Regex::new(
             &format!("^({}){{{}}}({}){{{}}}$", &cache[&42], k, &cache[&31], k),
         ).unwrap()
