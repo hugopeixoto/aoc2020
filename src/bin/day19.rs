@@ -59,7 +59,6 @@ pub fn day19(input: String) -> (usize, usize) {
     flatten(&rules, 0, &mut cache, 0);
 
     let re = Regex::new(&format!("^{}$", &cache[&0])).unwrap();
-    let re8 = Regex::new(&format!("^{}+$", &cache[&8])).unwrap();
 
     let mut p1 = 0;
     for message in messagesstr.lines() {
@@ -68,16 +67,15 @@ pub fn day19(input: String) -> (usize, usize) {
         }
     }
 
-    let mut p2 = 0;
-
     let k = messagesstr.lines().map(|x| x.len()).max().unwrap();
-
+    let re8 = Regex::new(&format!("^{}+$", &cache[&8])).unwrap();
     let regexps = (0..=k/2).map(|k| {
         Regex::new(
             &format!("^({}){{{}}}({}){{{}}}$", &cache[&42], k, &cache[&31], k),
         ).unwrap()
     }).collect::<Vec<_>>();
 
+    let mut p2 = 0;
     for message in messagesstr.lines() {
         'x: for i in 1..message.len() {
             let p8 = &message[0..i];
@@ -97,4 +95,4 @@ pub fn day19(input: String) -> (usize, usize) {
     (p1, p2)
 }
 
-aoc2020::day!(day19, "day19.in", bench_day19);
+aoc2e20::day!(day19, "day19.in", bench_day19);
