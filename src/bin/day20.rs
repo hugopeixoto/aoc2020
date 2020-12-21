@@ -5,32 +5,8 @@
 #![feature(test)]
 extern crate test;
 
-use std::collections::*;
-
-fn flipbits64(mut n: u64) -> u64 {
-    let mut f = 0;
-
-    let mut i = 0;
-    while i < 64 {
-        f = f << 1 | (n & 1);
-        n >>= 1;
-        i += 1;
-    }
-
-    f
-}
-
-fn flipbits(mut n: usize) -> usize {
-    let mut f = 0;
-
-    let mut i = 0;
-    while i < 10 {
-        f = f << 1 | (n & 1);
-        n >>= 1;
-        i += 1;
-    }
-
-    f
+fn flipbits(n: usize) -> usize {
+    n.reverse_bits() >> (64 - 10)
 }
 
 fn rotate(tile: u64, rotation: usize) -> u64 {
@@ -46,18 +22,9 @@ fn rotate(tile: u64, rotation: usize) -> u64 {
             (0..8).map(|i| 1&(tile >> ((i+1)*8 - 7))).fold(0, |acc, d| acc * 2 + d) << (64-7*8) |
             (0..8).map(|i| 1&(tile >> ((i+1)*8 - 8))).fold(0, |acc, d| acc * 2 + d) << (64-8*8)
         },
-        2 => flipbits64(tile),
-        3 => flipbits64(rotate(tile, 1)),
-        4 => {
-            (0..8).map(|i| 1&(tile >> (56 + i))).fold(0, |acc, d| acc * 2 + d) << (64-1*8) |
-            (0..8).map(|i| 1&(tile >> (48 + i))).fold(0, |acc, d| acc * 2 + d) << (64-2*8) |
-            (0..8).map(|i| 1&(tile >> (40 + i))).fold(0, |acc, d| acc * 2 + d) << (64-3*8) |
-            (0..8).map(|i| 1&(tile >> (32 + i))).fold(0, |acc, d| acc * 2 + d) << (64-4*8) |
-            (0..8).map(|i| 1&(tile >> (24 + i))).fold(0, |acc, d| acc * 2 + d) << (64-5*8) |
-            (0..8).map(|i| 1&(tile >> (16 + i))).fold(0, |acc, d| acc * 2 + d) << (64-6*8) |
-            (0..8).map(|i| 1&(tile >> ( 8 + i))).fold(0, |acc, d| acc * 2 + d) << (64-7*8) |
-            (0..8).map(|i| 1&(tile >> ( 0 + i))).fold(0, |acc, d| acc * 2 + d) << (64-8*8)
-        },
+        2 => tile.reverse_bits(),
+        3 => rotate(tile, 1).reverse_bits(),
+        4 => tile.reverse_bits().swap_bytes(),
         5 => rotate(rotate(tile, 4), 1),
         6 => rotate(rotate(tile, 4), 2),
         7 => rotate(rotate(tile, 4), 3),
@@ -99,83 +66,44 @@ fn parse_numbers(input: &str) -> Vec<usize> {
 }
 
 fn parse_image(input: &str) -> u64 {
-  (0..64)
-    .map(|i| input.chars().nth(((i/8)+1)*11 + (i%8 + 1)).unwrap() == '#')
-    .fold(0, |acc, d| acc * 2 + (d as u64))
+    let mut n = 0;
+    for (i, c) in input[11..11*9].chars().enumerate() {
+        if i % 11 != 0 && i % 11 < 9 {
+            n = n * 2 + (c == '#') as u64;
+        }
+    }
+
+    n
 }
 
 fn get(tile: &(usize, Vec<usize>, u64), rotation: usize, side: usize) -> usize {
-    let (side, flip) = match (rotation, side) {
-        (0, 0) => (0, false),
-        (0, 1) => (1, false),
-        (0, 2) => (2, false),
-        (0, 3) => (3, false),
-
-        (1, 0) => (3, false),
-        (1, 1) => (0, false),
-        (1, 2) => (1, false),
-        (1, 3) => (2, false),
-
-        (2, 0) => (2, false),
-        (2, 1) => (3, false),
-        (2, 2) => (0, false),
-        (2, 3) => (1, false),
-
-        (3, 0) => (1, false),
-        (3, 1) => (2, false),
-        (3, 2) => (3, false),
-        (3, 3) => (0, false),
-
-        (4, 0) => (0, true),
-        (4, 1) => (3, true),
-        (4, 2) => (2, true),
-        (4, 3) => (1, true),
-
-        (5, 0) => (1, true),
-        (5, 1) => (0, true),
-        (5, 2) => (3, true),
-        (5, 3) => (2, true),
-
-        (6, 0) => (2, true),
-        (6, 1) => (1, true),
-        (6, 2) => (0, true),
-        (6, 3) => (3, true),
-
-        (7, 0) => (3, true),
-        (7, 1) => (2, true),
-        (7, 2) => (1, true),
-        (7, 3) => (0, true),
-
-        _ => { panic!(); },
-    };
-
-    let r = tile.1[side];
-    if flip {
-        flipbits(r)
+    if rotation < 4 {
+        tile.1[(4 + side - rotation) % 4]
     } else {
-        r
+        flipbits(tile.1[(rotation - side) % 4])
     }
 }
 
-fn gen(mapping: &mut Vec<usize>, rotations: &mut Vec<usize>, idx: usize, tiles: &Vec<(usize, Vec<usize>, u64)>, w: usize) -> bool {
+fn gen(mapping: &mut Vec<usize>, rotations: &mut Vec<usize>, used: &mut Vec<bool>, idx: usize, tiles: &Vec<(usize, Vec<usize>, u64)>, w: usize) -> bool {
     if idx == mapping.len() {
         true
     } else {
         for i in 0..tiles.len() {
-            if !mapping[0..idx].contains(&i) {
+            if !used[i] {
                 mapping[idx] = i;
+                used[i] = true;
                 for r in 0..8 {
                     rotations[idx] = r;
 
                     if idx % w == 0 || get(&tiles[mapping[idx - 1]], rotations[idx - 1], 1) == flipbits(get(&tiles[mapping[idx]], rotations[idx], 3)) {
                         if idx / w == 0 || get(&tiles[mapping[idx - w]], rotations[idx - w], 2) == flipbits(get(&tiles[mapping[idx]], rotations[idx], 0)) {
-                            if gen(mapping, rotations, idx + 1, tiles, w) {
+                            if gen(mapping, rotations, used, idx + 1, tiles, w) {
                                 return true;
                             }
                         }
                     }
-
                 }
+                used[i] = false;
             }
         }
 
@@ -185,38 +113,33 @@ fn gen(mapping: &mut Vec<usize>, rotations: &mut Vec<usize>, idx: usize, tiles: 
 
 pub fn day20(input: String) -> (usize, usize) {
     let tiles = input.split("\n\n").map(|t| {
-       let id = t[5..9].parse::<usize>().unwrap();
-
+        let id = t[5..9].parse::<usize>().unwrap();
         let numbers = parse_numbers(&t[11..]);
         let image = parse_image(&t[11..]);
 
-       (id, numbers, image)
+        (id, numbers, image)
     }).collect::<Vec<_>>();
 
-    println!("{:?}", tiles.len());
     let w = if tiles.len() == 144 { 12 } else { 3 };
 
     let mut mapping = vec![];
     mapping.resize(tiles.len(), 0);
+
     let mut rotations = vec![];
     rotations.resize(tiles.len(), 0);
 
-    let ret = gen(&mut mapping, &mut rotations, 0, &tiles, w);
+    let mut used = vec![];
+    used.resize(tiles.len(), false);
 
-    println!("success: {}", ret);
+    let ret = gen(&mut mapping, &mut rotations, &mut used, 0, &tiles, w);
 
-    for i in 0..mapping.len() {
-        print!("{}({}) {:064b}", tiles[mapping[i]].0, rotations[i], tiles[mapping[i]].2);
-        if i % w == w - 1 { println!(""); }
-    }
+    if !ret { return (0, 0); }
 
-    let total =
+    let p1 =
         tiles[mapping[0]].0 *
         tiles[mapping[w - 1]].0 *
         tiles[mapping[w * (w - 1)]].0 *
         tiles[mapping[w * w - 1]].0;
-
-    let p1 = total;
 
     let mut image: Vec<bool> = vec![];
 
@@ -229,45 +152,30 @@ pub fn day20(input: String) -> (usize, usize) {
         }
     }
 
-    for y in 0..w * 8 {
-        for x in 0..w * 8 {
-            print!("{}", if image[y*w*8 + x] { '#' } else { '.' });
-        }
-        println!("");
-    }
-
-    let mut total = 0;
-    let mut monsters = 0;
-
+    let mut p2 = 0;
     let spots = [
         (0, 18),
         (1, 0), (1, 5), (1, 6), (1, 11), (1, 12), (1, 17), (1, 18), (1, 19),
         (2, 1), (2, 4), (2, 7), (2, 10), (2, 13), (2, 16),
     ];
 
-    let mut marks = HashSet::new();
     for r in 0..8 {
-        println!("flip {}", r);
         let rimage = flipimage(&image, r, 8*w);
         let px = |y: usize, x: usize| rimage[(y*w*8)+(x)];
+        let mut monsters = 0;
 
         for y in 0 .. w*8 - 2 {
             for x in 0 .. w*8 - 20 {
                 if spots.iter().all(|(dy, dx)| px(y+dy, x+dx)) {
-                    println!("monster @ {} {}", x, y);
-                    for (dy, dx) in spots.iter() {
-                        marks.insert((y+dy, x+dx));
-                    }
                     monsters += 1;
                 }
             }
         }
 
+        if monsters > 0 {
+            p2 = image.iter().filter(|&&c| c).count() - monsters*spots.len();
+        }
     }
-
-    total += image.iter().filter(|&&c| c).count() - marks.len();
-
-    let p2 = total;
 
     (p1, p2)
 }

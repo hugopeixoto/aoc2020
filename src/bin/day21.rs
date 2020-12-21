@@ -8,57 +8,54 @@ extern crate test;
 use std::collections::*;
 
 pub fn day21(input: String) -> (usize, String) {
-    let mut map: HashMap<String, HashSet<_>> = HashMap::new();
+    let mut a2is: HashMap<&str, HashSet<&str>> = HashMap::new();
     let mut total_ingredients = vec![];
 
     for line in input.lines() {
         let mut x = line[0..line.len() - 1].split(" (contains ");
-        let ingredients = x.next().unwrap().split(' ').map(|x| x.to_string()).collect::<HashSet<_>>();
-        let allergens = x.next().unwrap().split(", ").collect::<Vec<_>>();
+        let ingredients = x.next().unwrap().split(' ').collect::<HashSet<&str>>();
 
-        for ingredient in ingredients.iter() {
-            total_ingredients.push(ingredient.to_string());
+        for allergen in x.next().unwrap().split(", ") {
+            match a2is.get_mut(allergen) {
+                Some(i) => { i.retain(|e| ingredients.contains(e)); },
+                None => { a2is.insert(allergen, ingredients.clone()); },
+            }
         }
 
-        for &allergen in allergens.iter() {
-            if !map.contains_key(&allergen.to_string()) {
-                map.insert(allergen.to_string(), ingredients.clone());
-            } else {
-                let intersection = map[allergen].intersection(&ingredients).map(|x| x.to_string()).collect::<HashSet<_>>();
-                map.insert(allergen.to_string(), intersection);
+        for ingredient in ingredients {
+            total_ingredients.push(ingredient);
+        }
+    }
+
+    let mut dangerous_ingredients: HashSet<&str> = HashSet::new();
+    let mut i2a: HashMap<&str, &str> = HashMap::new();
+    loop {
+        match a2is.iter().find(|(_, v)| v.len() == 1) {
+            None => {
+                break;
+            },
+            Some((&allergen, ingredients)) => {
+                let &ingredient = ingredients.iter().next().unwrap();
+
+                dangerous_ingredients.insert(ingredient);
+                i2a.insert(ingredient, allergen);
+
+                for v in a2is.values_mut() {
+                    v.remove(ingredient);
+                }
             }
         }
     }
 
-    let mut dangerous_ingredients: HashSet<String> = HashSet::new();
-    let mut i2a: HashMap<String, String> = HashMap::new();
-    loop {
-        let m = map.iter().filter(|&(k,v)| v.len() == 1 && !dangerous_ingredients.contains(k)).next();
-        if m.is_none() {
-            break;
-        }
-
-        let (allergen, ingredients) = m.unwrap();
-
-        let ingredient = ingredients.iter().next().unwrap().clone();
-
-        dangerous_ingredients.insert(ingredient.clone());
-        i2a.insert(ingredient.clone(), allergen.clone());
-
-        for (_,v) in map.iter_mut() {
-            v.remove(&ingredient);
-        }
-    }
-
     let mut total = 0;
-    for ingredient in total_ingredients.iter() {
+    for ingredient in total_ingredients {
         if !dangerous_ingredients.contains(ingredient) {
             total += 1;
         }
     }
 
-    let mut dangerous_ingredients = dangerous_ingredients.iter().map(|x|x.to_string()).collect::<Vec<_>>();
-    dangerous_ingredients.sort_by_key(|k| i2a[k].to_string());
+    let mut dangerous_ingredients = dangerous_ingredients.into_iter().collect::<Vec<_>>();
+    dangerous_ingredients.sort_by_key(|k| &i2a[k]);
 
     (total, dangerous_ingredients.join(","))
 }
