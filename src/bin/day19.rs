@@ -95,4 +95,4 @@ pub fn day19(input: String) -> (usize, usize) {
     (p1, p2)
 }
 
-aoc2e20::day!(day19, "day19.in", bench_day19);
+aoc2020::day!(day19, "day19.in", bench_day19);
