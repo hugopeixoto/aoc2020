@@ -69,16 +69,20 @@ pub fn day19(input: String) -> (usize, usize) {
     }
 
     let mut p2 = 0;
+
+    let regexps = (0..100).map(|k| {
+        Regex::new(
+            &format!("^({}){{{}}}({}){{{}}}$", &cache[&42], k, &cache[&31], k),
+        ).unwrap()
+    }).collect::<Vec<_>>();
+
     for message in messagesstr.lines() {
         'x: for i in 1..message.len() {
             let p8 = &message[0..i];
             if re8.is_match(p8) {
                 let p11 = &message[i..];
                 for k in 1..=p11.len()/2 {
-                    let re11 = Regex::new(&format!(
-                            "^({}){{{}}}({}){{{}}}$",
-                            &cache[&42], k, &cache[&31], k)).unwrap();
-
+                    let re11 = &regexps[k];
                     if re11.is_match(p11) {
                         p2 += 1;
                         break 'x;
