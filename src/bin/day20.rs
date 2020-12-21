@@ -84,26 +84,66 @@ fn get(tile: &(usize, Vec<usize>, u64), rotation: usize, side: usize) -> usize {
     }
 }
 
-fn gen(mapping: &mut Vec<usize>, rotations: &mut Vec<usize>, used: &mut Vec<bool>, idx: usize, tiles: &Vec<(usize, Vec<usize>, u64)>, w: usize) -> bool {
+fn gen(mapping: &mut Vec<usize>, rotations: &mut Vec<usize>, used: &mut Vec<bool>, idx: usize, tiles: &Vec<(usize, Vec<usize>, u64)>, x: &Vec<Vec<usize>>, w: usize) -> bool {
     if idx == mapping.len() {
         true
     } else {
-        for i in 0..tiles.len() {
-            if !used[i] {
-                mapping[idx] = i;
-                used[i] = true;
-                for r in 0..8 {
-                    rotations[idx] = r;
+        if idx == 0 {
+            for i in 0..tiles.len() {
+                if !used[i] {
+                    mapping[idx] = i;
+                    used[i] = true;
+                    for r in 0..8 {
+                        rotations[idx] = r;
 
-                    if idx % w == 0 || get(&tiles[mapping[idx - 1]], rotations[idx - 1], 1) == flipbits(get(&tiles[mapping[idx]], rotations[idx], 3)) {
-                        if idx / w == 0 || get(&tiles[mapping[idx - w]], rotations[idx - w], 2) == flipbits(get(&tiles[mapping[idx]], rotations[idx], 0)) {
-                            if gen(mapping, rotations, used, idx + 1, tiles, w) {
-                                return true;
-                            }
+                        if gen(mapping, rotations, used, idx + 1, tiles, x, w) {
+                            return true;
                         }
                     }
+                    used[i] = false;
                 }
-                used[i] = false;
+            }
+        } else if idx % w == 0 {
+            let p = flipbits(get(&tiles[mapping[idx - w]], rotations[idx - w], 2));
+            for &i in x[p].iter() {
+                if !used[i] {
+                    mapping[idx] = i;
+                    used[i] = true;
+                    'l1: for r in 0..8 {
+                        rotations[idx] = r;
+
+                        if p == get(&tiles[mapping[idx]], rotations[idx], 0) {
+                            if gen(mapping, rotations, used, idx + 1, tiles, x, w) {
+                                return true;
+                            }
+
+                            break 'l1;
+                        }
+                    }
+                    used[i] = false;
+                }
+            }
+        } else {
+            let p = flipbits(get(&tiles[mapping[idx - 1]], rotations[idx - 1], 1));
+            for &i in x[p].iter() {
+                if !used[i] {
+                    mapping[idx] = i;
+                    used[i] = true;
+                    'l2: for r in 0..8 {
+                        rotations[idx] = r;
+
+                        if p == get(&tiles[mapping[idx]], rotations[idx], 3) {
+                            if idx / w == 0 || flipbits(get(&tiles[mapping[idx - w]], rotations[idx - w], 2)) == get(&tiles[mapping[idx]], rotations[idx], 0) {
+                                if gen(mapping, rotations, used, idx + 1, tiles, x, w) {
+                                    return true;
+                                }
+                            }
+
+                            break 'l2;
+                        }
+                    }
+                    used[i] = false;
+                }
             }
         }
 
@@ -131,7 +171,16 @@ pub fn day20(input: String) -> (usize, usize) {
     let mut used = vec![];
     used.resize(tiles.len(), false);
 
-    let ret = gen(&mut mapping, &mut rotations, &mut used, 0, &tiles, w);
+    let mut x: Vec<Vec<_>> = vec![];
+    x.resize(1024, vec![]);
+    for (idx, tile) in tiles.iter().enumerate() {
+        for &v in tile.1.iter() {
+            x[v].push(idx);
+            x[flipbits(v)].push(idx);
+        }
+    }
+
+    let ret = gen(&mut mapping, &mut rotations, &mut used, 0, &tiles, &x, w);
 
     if !ret { return (0, 0); }
 
@@ -174,6 +223,7 @@ pub fn day20(input: String) -> (usize, usize) {
 
         if monsters > 0 {
             p2 = image.iter().filter(|&&c| c).count() - monsters*spots.len();
+            break;
         }
     }
 
