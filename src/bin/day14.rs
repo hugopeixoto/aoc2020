@@ -5,17 +5,11 @@ extern crate test;
 
 use std::collections::*;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 struct Entry {
     fixed: u64,
     floating: u64,
     value: u64,
-}
-
-impl core::fmt::Display for Entry {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}", (0..36).map(|i| match (1&(self.floating >> (36-1-i)), 1&(self.fixed >> (36-1-i))) { (1, _) => 'X', (_, 0) => '0', (_, _) => '1' }).collect::<String>())
-    }
 }
 
 // 001XX
@@ -45,13 +39,21 @@ impl core::fmt::Display for Entry {
 // 001XX vs 00101
 // 001X0
 // 00111
+fn cover(entry: &Entry, new_entry: &Entry) -> bool {
+    entry.floating == new_entry.floating && entry.fixed == new_entry.fixed
+}
+
+fn intersect(entry: &Entry, new_entry: &Entry) -> bool {
+    (new_entry.fixed & !entry.floating) == (entry.fixed & !new_entry.floating)
+}
+
 fn gen3(entry: &Entry, new_entry: &Entry) -> Vec<Entry> {
-    if entry.floating == new_entry.floating && entry.fixed == new_entry.fixed {
-        return vec![];
+    if !intersect(entry, new_entry) {
+        return vec![entry.clone()];
     }
 
-    if (new_entry.fixed & !entry.floating) != (entry.fixed & !new_entry.floating) {
-        return vec![*entry];
+    if cover(entry, new_entry) {
+        return vec![];
     }
 
     let xes = entry.floating & !new_entry.floating;
@@ -60,7 +62,7 @@ fn gen3(entry: &Entry, new_entry: &Entry) -> Vec<Entry> {
     let mut r = vec![];
     let mut accum = 0;
     for i in 0..36 {
-        if 1&(xes >> i) != 0 {
+        if xes & (1 << i) != 0 {
             let keeps = (1 << (i+1)) - 1;
             r.push(Entry {
                 fixed: entry.fixed | (!(new_entry.fixed) & (1 << i)) | accum,
@@ -83,10 +85,10 @@ pub fn day14(input: String) -> (u64, u64) {
 
     for line in input.lines() {
         if line.starts_with("mask = ") {
-            let poop = line.split(" = ").nth(1).unwrap();
+            let mask = line.split(" = ").nth(1).unwrap();
 
-            mask_fixed = poop.chars().fold(0, |acc, n: char| acc * 2 + (n == '1') as u64);
-            mask_floating = poop.chars().fold(0, |acc, n: char| acc * 2 + (n == 'X') as u64);
+            mask_fixed = mask.chars().fold(0, |acc, n: char| acc * 2 + (n == '1') as u64);
+            mask_floating = mask.chars().fold(0, |acc, n: char| acc * 2 + (n == 'X') as u64);
         }
 
         if line.starts_with("mem[") {
@@ -107,12 +109,16 @@ pub fn day14(input: String) -> (u64, u64) {
             let mut s = 0;
             let pl = memory2.len();
             for i in 0..pl {
-                for r in gen3(&memory2[i], &new_entry) {
-                    if s <= i {
-                        memory2[s] = r;
-                        s += 1;
-                    } else {
-                        memory2.push(r);
+                if s == i && !intersect(&memory2[i], &new_entry) {
+                    s += 1;
+                } else {
+                    for r in gen3(&memory2[i], &new_entry) {
+                        if s <= i {
+                            memory2[s] = r;
+                            s += 1;
+                        } else {
+                            memory2.push(r);
+                        }
                     }
                 }
             }
@@ -121,14 +127,12 @@ pub fn day14(input: String) -> (u64, u64) {
 
             let mut dropped = 0;
             while s < pl {
-                memory2[s] = memory2[memory2.len() - 1];
+                memory2[s] = memory2[memory2.len() - 1].clone();
                 s += 1;
                 dropped += 1;
             }
 
-            if dropped > 0 {
-                memory2.truncate(memory2.len() - dropped);
-            }
+            memory2.truncate(memory2.len() - dropped);
         }
     }
 
@@ -137,10 +141,7 @@ pub fn day14(input: String) -> (u64, u64) {
         p2 += e.value * (1 << e.floating.count_ones());
     }
 
-    (
-        memory1.values().sum(),
-        p2,
-    )
+    (memory1.values().sum(), p2)
 }
 
 aoc2020::day!(day14, "day14.in", bench_day14);
