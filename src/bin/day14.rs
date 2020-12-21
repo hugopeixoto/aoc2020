@@ -104,15 +104,31 @@ pub fn day14(input: String) -> (u64, u64) {
 
             memory1.insert(addr, mvalue);
 
-            let mut newentries = vec![];
-            for entry in memory2 {
-                for r in gen3(&entry, &new_entry) {
-                    newentries.push(r);
+            let mut s = 0;
+            let pl = memory2.len();
+            for i in 0..pl {
+                for r in gen3(&memory2[i], &new_entry) {
+                    if s <= i {
+                        memory2[s] = r;
+                        s += 1;
+                    } else {
+                        memory2.push(r);
+                    }
                 }
             }
 
-            memory2 = newentries;
             memory2.push(new_entry);
+
+            let mut dropped = 0;
+            while s < pl {
+                memory2[s] = memory2[memory2.len() - 1];
+                s += 1;
+                dropped += 1;
+            }
+
+            if dropped > 0 {
+                memory2.truncate(memory2.len() - dropped);
+            }
         }
     }
 
