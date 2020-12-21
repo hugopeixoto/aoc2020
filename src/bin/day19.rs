@@ -72,7 +72,7 @@ pub fn day19(input: String) -> (usize, usize) {
 
     let k = messagesstr.lines().map(|x| x.len()).max().unwrap();
 
-    let regexps = (0..=k).map(|k| {
+    let regexps = (0..=k/2).map(|k| {
         Regex::new(
             &format!("^({}){{{}}}({}){{{}}}$", &cache[&42], k, &cache[&31], k),
         ).unwrap()
