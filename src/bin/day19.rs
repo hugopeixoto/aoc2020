@@ -63,9 +63,12 @@ pub fn day19(input: String) -> (usize, usize) {
     let mut p1 = 0;
     for message in messagesstr.lines() {
         if re.is_match(message) {
+            println!("{}", message);
             p1 += 1;
         }
     }
+
+    return (p1, 0);
 
     let k = messagesstr.lines().map(|x| x.len()).max().unwrap();
     let re8 = Regex::new(&format!("^{}+$", &cache[&8])).unwrap();
@@ -95,4 +98,4 @@ pub fn day19(input: String) -> (usize, usize) {
     (p1, p2)
 }
 
-aoc2020::day!(day19, "day19.in", bench_day19);
+aoc2020::day!(day19, "day19.sample", bench_day19);
