@@ -3,7 +3,7 @@ name = "aoc2020"
 version = "0.1.0"
 authors = ["Hugo Peixoto <hugo.peixoto@gmail.com>"]
 edition = "2018"
-default-run = "day24"
+default-run = "day25"
 
 [dependencies]
 regex = "1.4.2"

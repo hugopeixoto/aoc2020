@@ -92,7 +92,7 @@ pub fn day24(input: String) -> (usize, usize) {
     let mut a = &mut colors.clone();
     let mut b = &mut colors.clone();
 
-    for i in 0..100 {
+    for _ in 0..100 {
         next(a, b);
         (a,b) = (b, a);
     }
