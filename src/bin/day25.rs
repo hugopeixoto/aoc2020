@@ -6,13 +6,24 @@
 #![feature(test)]
 extern crate test;
 
-pub fn encrypt(subject: u64, privkey: u64) -> u64 {
-    let mut value = 1;
-    for _ in 0..privkey {
-        value = (value * subject) % 20201227;
+pub fn modpow(mut n: u64, mut e: u64, m: u64) -> u64 {
+    n = n%m;
+    let mut r = 1;
+    while e > 0 {
+        if e % 2 == 0 {
+            n = (n*n)%m;
+        } else {
+            r = (r*n)%m;
+            n = (n*n)%m;
+        }
+        e /= 2;
     }
 
-    value
+    r
+}
+
+pub fn encrypt(subject: u64, privkey: u64) -> u64 {
+    modpow(subject, privkey, 20201227)
 }
 
 pub fn decrypt(pubkey: u64) -> u64 {
@@ -38,13 +49,9 @@ pub fn day25(input: String) -> (u64, u64) {
     let card = lines.next().unwrap().parse::<u64>().unwrap();
     let door = lines.next().unwrap().parse::<u64>().unwrap();
 
-    let cardprivkey = decrypt(card);
-    let doorprivkey = decrypt(door);
+    let enc1 = encrypt(door, decrypt(card));
 
-    let enc1 = encrypt(door, cardprivkey);
-    let enc2 = encrypt(card, doorprivkey);
-
-    (enc1, enc2)
+    (enc1, 0)
 }
 
 aoc2020::day!(day25, "day25.in", bench_day25);
