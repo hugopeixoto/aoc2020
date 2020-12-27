@@ -121,12 +121,12 @@ pub fn day24(input: String) -> (usize, usize) {
     let mut a = &mut floor.clone();
     let mut b = &mut floor.clone();
 
-    for i in 0..100 {
+    for i in 1..=100 {
         next(a, b, &boundsn, &Bounds {
-            xmin: bounds0.xmin - i - 2,
-            ymin: bounds0.ymin - i - 2,
-            xmax: bounds0.xmax + i + 2,
-            ymax: bounds0.ymax + i + 2,
+            xmin: bounds0.xmin - i,
+            ymin: bounds0.ymin - i,
+            xmax: bounds0.xmax + i,
+            ymax: bounds0.ymax + i,
         });
 
         (a,b) = (b, a);
