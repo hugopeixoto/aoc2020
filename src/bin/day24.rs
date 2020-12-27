@@ -24,9 +24,10 @@ struct Bounds {
 fn next(a: &mut Vec<bool>, b: &mut Vec<bool>, boundsn: &Bounds, boundsi: &Bounds) {
     let width = boundsn.xmax - boundsn.xmin;
 
-    for x in boundsi.xmin..=boundsi.xmax {
-        for y in boundsi.ymin..=boundsi.ymax {
-            let idx = ((y - boundsn.ymin) * width + (x - boundsn.xmin)) as usize;
+    for y in boundsi.ymin..=boundsi.ymax {
+        let base = (y - boundsn.ymin) * width - boundsn.xmin;
+        for x in boundsi.xmin..=boundsi.xmax {
+            let idx = (base + x) as usize;
             let is_black = a[idx];
             let black_neighbors = DELTAS.iter().filter(|d| {
                 a[(idx as i32 + d.1 * width + d.0) as usize]
