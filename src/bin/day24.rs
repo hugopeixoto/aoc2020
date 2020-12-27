@@ -14,23 +14,27 @@ const DELTAS: [(i32, i32); 6] = [
        (0,  1), (1,  1),
 ];
 
-fn next(a: &mut HashSet<(i32, i32)>, b: &mut HashSet<(i32, i32)>) {
-    let xmin = a.iter().map(|&(x,_)| x).min().unwrap();
-    let ymin = a.iter().map(|&(_,y)| y).min().unwrap();
-    let xmax = a.iter().map(|&(x,_)| x).max().unwrap();
-    let ymax = a.iter().map(|&(_,y)| y).max().unwrap();
+struct Bounds {
+    xmin: i32,
+    xmax: i32,
+    ymin: i32,
+    ymax: i32,
+}
 
-    for i in xmin-2..=xmax+2 {
-        for j in ymin-2..=ymax+2 {
-            let p = (i, j);
-            let is_black = a.contains(&p);
-            let black_neighbors = DELTAS.iter().filter(|d| a.contains(&(i+d.0, j+d.1))).count();
+fn next(a: &mut Vec<bool>, b: &mut Vec<bool>, boundsn: &Bounds, boundsi: &Bounds) {
+    for x in boundsi.xmin..=boundsi.xmax {
+        for y in boundsi.ymin..=boundsi.ymax {
+            let idx = ((y - boundsn.ymin) * (boundsn.xmax - boundsn.xmin) + (x - boundsn.xmin)) as usize;
+            let is_black = a[idx];
+            let black_neighbors = DELTAS.iter().filter(|d| {
+                a[((y + d.1 - boundsn.ymin) * (boundsn.xmax - boundsn.xmin) + (x + d.0 - boundsn.xmin)) as usize]
+            }).count();
 
             match (is_black, black_neighbors) {
-                (true, 0) | (true, 3..) => { b.remove(&p); },
-                (true, _) => { b.insert(p); }
-                (false, 2) => { b.insert(p); }
-                (false, _) => { b.remove(&p); }
+                (true, 0) | (true, 3..) => { b[idx] = false; },
+                (true, _) => { b[idx] = true; }
+                (false, 2) => { b[idx] = true; }
+                (false, _) => { b[idx] = false; }
             }
         }
     }
@@ -87,17 +91,49 @@ pub fn day24(input: String) -> (usize, usize) {
         }
     }
 
-    let p1 = colors.len();
+    let bounds0 = Bounds {
+        xmin: *colors.iter().map(|(x,_)| x).min().unwrap(),
+        ymin: *colors.iter().map(|(_,y)| y).min().unwrap(),
+        xmax: *colors.iter().map(|(x,_)| x).max().unwrap(),
+        ymax: *colors.iter().map(|(_,y)| y).max().unwrap(),
+    };
 
-    let mut a = &mut colors.clone();
-    let mut b = &mut colors.clone();
+    let boundsn = Bounds {
+        xmin: bounds0.xmin - 104,
+        ymin: bounds0.ymin - 104,
+        xmax: bounds0.xmax + 104,
+        ymax: bounds0.ymax + 104,
+    };
 
-    for _ in 0..100 {
-        next(a, b);
+    let width = boundsn.xmax - boundsn.xmin;
+    let height = boundsn.ymax - boundsn.ymin;
+
+    let n = (width * height) as usize;
+
+    let mut floor = vec![];
+    floor.resize(n, false);
+    for &(x, y) in colors.iter() {
+        floor[((y - boundsn.ymin) * width + (x - boundsn.xmin)) as usize] = true;
+    }
+
+    let mut a = &mut floor.clone();
+    let mut b = &mut floor.clone();
+
+    for i in 0..100 {
+        next(a, b, &boundsn, &Bounds {
+            xmin: bounds0.xmin - i - 2,
+            ymin: bounds0.ymin - i - 2,
+            xmax: bounds0.xmax + i + 2,
+            ymax: bounds0.ymax + i + 2,
+        });
+
         (a,b) = (b, a);
     }
 
-    (p1, a.len())
+    let p1 = colors.len();
+    let p2 = a.iter().filter(|&&x| x).count();
+
+    (p1, p2)
 }
 
 aoc2020::day!(day24, "day24.in", bench_day24);
