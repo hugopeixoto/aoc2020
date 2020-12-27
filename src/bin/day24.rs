@@ -22,20 +22,22 @@ struct Bounds {
 }
 
 fn next(a: &mut Vec<bool>, b: &mut Vec<bool>, boundsn: &Bounds, boundsi: &Bounds) {
+    let width = boundsn.xmax - boundsn.xmin;
+
     for x in boundsi.xmin..=boundsi.xmax {
         for y in boundsi.ymin..=boundsi.ymax {
-            let idx = ((y - boundsn.ymin) * (boundsn.xmax - boundsn.xmin) + (x - boundsn.xmin)) as usize;
+            let idx = ((y - boundsn.ymin) * width + (x - boundsn.xmin)) as usize;
             let is_black = a[idx];
             let black_neighbors = DELTAS.iter().filter(|d| {
-                a[((y + d.1 - boundsn.ymin) * (boundsn.xmax - boundsn.xmin) + (x + d.0 - boundsn.xmin)) as usize]
+                a[(idx as i32 + d.1 * width + d.0) as usize]
             }).count();
 
-            match (is_black, black_neighbors) {
-                (true, 0) | (true, 3..) => { b[idx] = false; },
-                (true, _) => { b[idx] = true; }
-                (false, 2) => { b[idx] = true; }
-                (false, _) => { b[idx] = false; }
-            }
+            b[idx] = match (is_black, black_neighbors) {
+                (true, 0 | 3..) => { false },
+                (true, _) => { true }
+                (false, 2) => { true }
+                (false, _) => { false }
+            };
         }
     }
 }
