@@ -9,19 +9,35 @@ fn flipbits(n: usize) -> usize {
     n.reverse_bits() >> (64 - 10)
 }
 
+fn transpose8naive(tile: u64) -> u64 {
+    (0..8).map(|i| 1&(tile >> ((i+1)*8 - 1))).fold(0, |acc, d| acc * 2 + d) << (64-1*8) |
+    (0..8).map(|i| 1&(tile >> ((i+1)*8 - 2))).fold(0, |acc, d| acc * 2 + d) << (64-2*8) |
+    (0..8).map(|i| 1&(tile >> ((i+1)*8 - 3))).fold(0, |acc, d| acc * 2 + d) << (64-3*8) |
+    (0..8).map(|i| 1&(tile >> ((i+1)*8 - 4))).fold(0, |acc, d| acc * 2 + d) << (64-4*8) |
+    (0..8).map(|i| 1&(tile >> ((i+1)*8 - 5))).fold(0, |acc, d| acc * 2 + d) << (64-5*8) |
+    (0..8).map(|i| 1&(tile >> ((i+1)*8 - 6))).fold(0, |acc, d| acc * 2 + d) << (64-6*8) |
+    (0..8).map(|i| 1&(tile >> ((i+1)*8 - 7))).fold(0, |acc, d| acc * 2 + d) << (64-7*8) |
+    (0..8).map(|i| 1&(tile >> ((i+1)*8 - 8))).fold(0, |acc, d| acc * 2 + d) << (64-8*8)
+}
+
+fn transpose8(mut a: u64) -> u64 {
+    let mut t = 0;
+
+    t = (a ^ (a >> 7)) & 0x00AA00AA00AA00AA;
+    a = a ^ t ^ (t << 7);
+
+    t = (a ^ (a >> 14)) & 0x0000CCCC0000CCCC;
+    a = a ^ t ^ (t << 14);
+
+    return (a & 0xF0F0F0F00F0F0F0F) |
+        ((a >> 28) & 0xF0F0F0F0F0F0F0F0) |
+        ((a << 28) & 0x0F0F0F0F0F0F0F0F);
+}
+
 fn rotate(tile: u64, rotation: usize) -> u64 {
     match rotation {
         0 => tile,
-        1 => {
-            (0..8).map(|i| 1&(tile >> ((i+1)*8 - 1))).fold(0, |acc, d| acc * 2 + d) << (64-1*8) |
-            (0..8).map(|i| 1&(tile >> ((i+1)*8 - 2))).fold(0, |acc, d| acc * 2 + d) << (64-2*8) |
-            (0..8).map(|i| 1&(tile >> ((i+1)*8 - 3))).fold(0, |acc, d| acc * 2 + d) << (64-3*8) |
-            (0..8).map(|i| 1&(tile >> ((i+1)*8 - 4))).fold(0, |acc, d| acc * 2 + d) << (64-4*8) |
-            (0..8).map(|i| 1&(tile >> ((i+1)*8 - 5))).fold(0, |acc, d| acc * 2 + d) << (64-5*8) |
-            (0..8).map(|i| 1&(tile >> ((i+1)*8 - 6))).fold(0, |acc, d| acc * 2 + d) << (64-6*8) |
-            (0..8).map(|i| 1&(tile >> ((i+1)*8 - 7))).fold(0, |acc, d| acc * 2 + d) << (64-7*8) |
-            (0..8).map(|i| 1&(tile >> ((i+1)*8 - 8))).fold(0, |acc, d| acc * 2 + d) << (64-8*8)
-        },
+        1 => transpose8(tile).reverse_bits().swap_bytes(),
         2 => tile.reverse_bits(),
         3 => rotate(tile, 1).reverse_bits(),
         4 => tile.reverse_bits().swap_bytes(),
@@ -228,6 +244,16 @@ pub fn day20(input: String) -> (usize, usize) {
     }
 
     (p1, p2)
+}
+
+#[bench]
+fn bench_transpose8(b: &mut test::Bencher) {
+    b.iter(|| transpose8(0xFF00FF00FF00FF00).reverse_bits().swap_bytes());
+}
+
+#[bench]
+fn bench_transpose8naive(b: &mut test::Bencher) {
+    b.iter(|| transpose8naive(0xFF00FF00FF00FF00));
 }
 
 aoc2020::day!(day20, "day20.in", bench_day20);
