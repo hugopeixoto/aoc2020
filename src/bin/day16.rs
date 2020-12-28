@@ -20,15 +20,6 @@ fn gen(mapping: &mut Vec<usize>, validities: &Vec<(usize, usize)>, index: usize)
     false
 }
 
-fn bits(mut n: usize) -> usize {
-    let mut b = 0;
-    while n > 0 {
-        b += n&1;
-        n /= 2;
-    }
-    b
-}
-
 pub fn day16(input: String) -> (usize, usize) {
     let mut parts = input.trim().split("\n\n");
 
@@ -102,7 +93,7 @@ pub fn day16(input: String) -> (usize, usize) {
         }
     }
 
-    ticketvalidities.sort_by_key(|&(_, v)| bits(v));
+    ticketvalidities.sort_by_key(|&(_, v)| v.count_ones());
 
     let mut mapping = vec![];
     mapping.resize(myticket.len(), 0);
