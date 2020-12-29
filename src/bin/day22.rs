@@ -217,7 +217,7 @@ impl core::fmt::Debug for Deck {
     }
 }
 
-fn play2(decks: &mut Deck) -> usize {
+fn play(decks: &mut Deck) -> usize {
     while decks.len1() > 0 && decks.len2() > 0 {
         let c1 = decks.get(0);
         let c2 = decks.get(decks.len1());
@@ -241,37 +241,61 @@ fn play2(decks: &mut Deck) -> usize {
 struct Stats {
     depth: usize,
     maxdepth: usize,
+    maxlength: usize,
     breaks: usize,
+    insertions: usize,
     subgames: usize,
+    subdeck1: usize,
+    subdeck2: usize,
+    subdeck3: usize,
+    shortcircuit_hits: usize,
+    shortcircuit_misses: usize,
 }
 
-fn play_recursive2(decks: &mut Deck, stats: &mut Stats) -> usize {
+fn play_recursive(decks: &mut Deck, stats: &mut Stats) -> usize {
     let mut seen = HashSet::new();
 
     stats.subgames += 1;
-
-    if stats.subgames == 1 {
-        println!("{:?}", decks);
-    }
 
     if stats.depth > stats.maxdepth {
         stats.maxdepth = stats.depth;
     }
 
+    let mut shortcircuit = false;
+    if stats.depth != 0 {
+        let m1 = (0..decks.len1()).map(|i| decks.get(i)).max().unwrap();
+        let m2 = (0..decks.len2()).map(|i| decks.get(i + decks.len1())).max().unwrap();
+
+        shortcircuit = m1 > m2 && m1 > decks.len1() as u8;
+        if shortcircuit {
+            stats.shortcircuit_hits += 1;
+            return 1;
+        } else {
+            stats.shortcircuit_misses += 1;
+        }
+    }
+
+    let mut length = 0;
     while decks.len1() > 0 && decks.len2() > 0 {
+        length += 1;
         if seen.contains(decks) {
             stats.breaks += 1;
             break;
         }
 
         seen.insert(decks.clone());
+        stats.insertions += 1;
 
         let c1 = decks.get(0);
         let c2 = decks.get(decks.len1());
 
+        if c1 <= 21 { stats.subdeck1 += 1; }
+        else if c1 <= 42 { stats.subdeck2 += 1; }
+        else { stats.subdeck3 += 1; }
+
         stats.depth += 1;
         let p1_wins_round = if decks.len1() > c1 as usize && decks.len2() > c2 as usize {
-            play_recursive2(&mut decks.subdeck(), stats) == 1
+            play_recursive(&mut decks.subdeck(), stats) == 1
         } else {
             c1 > c2
         };
@@ -281,6 +305,16 @@ fn play_recursive2(decks: &mut Deck, stats: &mut Stats) -> usize {
             decks.rotate1();
         } else {
             decks.rotate2();
+        }
+    }
+
+    if length > stats.maxlength {
+        stats.maxlength = length;
+    }
+
+    if shortcircuit {
+        if decks.len1() == 0 {
+            panic!();
         }
     }
 
@@ -302,20 +336,22 @@ fn score2(decks: &Deck, winner: usize) -> usize {
 pub fn day22(input: String) -> (usize, usize) {
     let mut decks = input.split("\n\n");
 
+    let mut stats = Stats::default();
+
     let deck1 = decks.next().unwrap()[9..].trim().split('\n').map(|x| x.parse::<u8>().unwrap()).collect::<Vec<_>>();
     let deck2 = decks.next().unwrap()[9..].trim().split('\n').map(|x| x.parse::<u8>().unwrap()).collect::<Vec<_>>();
 
     let mut d1 = Deck::from((deck1.clone(), deck2.clone()));
-
-    let winner1o = play2(&mut d1);
-    let p1o = score2(&d1, winner1o);
+    let winner1 = play(&mut d1);
+    let p1 = score2(&d1, winner1);
 
     let mut d2 = Deck::from((deck1.clone(), deck2.clone()));
-    let mut stats2 = Stats::default();
-    let winner2o = play_recursive2(&mut d2, &mut stats2);
-    let p2o = score2(&d2, winner2o);
+    let winner2 = play_recursive(&mut d2, &mut stats);
+    let p2 = score2(&d2, winner2);
 
-    (p1o, p2o)
+    println!("{:?}", stats);
+
+    (p1, p2)
 }
 
 aoc2020::day!(day22, "day22.in", bench_day22);
