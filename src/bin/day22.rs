@@ -122,6 +122,7 @@ impl Deck {
 
     fn subdeck(&self) -> Self {
         let mut sd = Deck::default();
+        let mut sd2 = Deck::default();
 
         let c1 = self.len1();
         let c2 = self.len2();
@@ -131,44 +132,80 @@ impl Deck {
 
         let drops = 1 + c1 - h1 as usize;
 
-        match c1 {
-            1..=21 => {
-                let keepmask = u128::MAX << (h1 * 6);
-                let carrymask = !(u128::MAX << (drops*6));
-                let keepmask3 = u128::MAX << (8 * 6);
+        //match c1 {
+        //    1..=21 => {
+        //        let h1mask = !(u128::MAX << (h1 * 6));
+        //        let h1h2mask = !(u128::MAX << ((h1 + h2) * 6));
+        //        let carrymask = !(u128::MAX << (drops*6));
+        //        let keepmask3 = u128::MAX << (8 * 6);
 
-                sd.a = (((self.b & carrymask) << ((21 - drops)*6)) & keepmask) | ((self.a >> (drops * 6)) & keepmask) | ((self.a >> 6) & !keepmask);
-                sd.b = ((self.c & carrymask) << ((21 - drops)*6)) | (self.b >> (drops * 6));
-                sd.c = (self.c & keepmask3) | ((self.c & !keepmask3) >> (drops * 6));
-            },
-            /*22..=42 => {*/
-            _ => {
-                for i in 0..h1 as usize {
-                    sd.set(i, self.get(i + 1));
-                }
+        //        sd2.a =
+        //            (((self.b & carrymask) << ((21 - drops)*6)) & !h1mask & h1h2mask) |
+        //            ((self.a >> (drops * 6)) & !h1mask & h1h2mask) |
+        //            ((self.a >> 6) & h1mask);
 
-                for i in 0..h2 as usize {
-                    sd.set(i + h1 as usize, self.get(c1 + i + 1));
-                }
+        //        sd2.b =
+        //            ((self.c & carrymask) << ((21 - drops)*6)) |
+        //            (self.b >> (drops * 6));
 
-                //let keepmask = u128::MAX << (h1 * 6);
-                //let carrymask = !(u128::MAX << (drops*6));
-                //let keepmask3 = u128::MAX << (8 * 6);
+        //        sd2.c = (self.c & keepmask3) | ((self.c & !keepmask3) >> (drops * 6));
+        //    },
+        //    //22..=42 => {
+        //    _ => {},
+        //    //_ => {
+        //        //let keepmask = u128::MAX << (h1 * 6);
+        //        //let carrymask = !(u128::MAX << (drops*6));
+        //        //let keepmask3 = u128::MAX << (8 * 6);
 
-                //println!("keepmask: {:0128b}", !keepmask);
-                //sd.a =
-                //    (((self.b & carrymask) << ((21 - drops)*6)) & keepmask) |
-                //    ((self.a >> (drops * 6)) & keepmask) |
-                //    ((self.a >> 6) & !keepmask);
-                //sd.b = ((self.c & carrymask) << ((21 - drops)*6)) | (self.b >> (drops * 6));
-                //sd.c = (self.c & keepmask3) | ((self.c & !keepmask3) >> (drops * 6));
-            },
-            //43..=50 => {},
-            //_ => { panic!(); },
+        //        //println!("keepmask: {:0128b}", !keepmask);
+        //        //sd.a =
+        //        //    (((self.b & carrymask) << ((21 - drops)*6)) & keepmask) |
+        //        //    ((self.a >> (drops * 6)) & keepmask) |
+        //        //    ((self.a >> 6) & !keepmask);
+        //        //sd.b = ((self.c & carrymask) << ((21 - drops)*6)) | (self.b >> (drops * 6));
+        //        //sd.c = (self.c & keepmask3) | ((self.c & !keepmask3) >> (drops * 6));
+        //    //},
+        //    //43..=50 => {},
+        //    //_ => { panic!(); },
+        //}
+
+        //sd2.set_len1(h1 as usize);
+        //sd2.set_len2(h2 as usize);
+
+        for i in 0..h1 as usize {
+            sd.set(i, self.get(i + 1));
+        }
+
+        for i in 0..h2 as usize {
+            sd.set(i + h1 as usize, self.get(c1 + i + 1));
         }
 
         sd.set_len1(h1 as usize);
         sd.set_len2(h2 as usize);
+
+        //if c1 <= 21 {
+        //    if sd != sd2 {
+        //        println!("before:");
+        //        println!("{:0128b}", self.a);
+        //        println!("{:0128b}", self.b);
+        //        println!("{:0128b}", self.c);
+        //        println!("{} {}", self.len1(), self.len2());
+
+        //        println!("sd:");
+        //        println!("{:0128b}", sd.a);
+        //        println!("{:0128b}", sd.b);
+        //        println!("{:0128b}", sd.c);
+        //        println!("{} {}", sd.len1(), sd.len2());
+
+        //        println!("sd2:");
+        //        println!("{:0128b}", sd2.a);
+        //        println!("{:0128b}", sd2.b);
+        //        println!("{:0128b}", sd2.c);
+        //        println!("{} {}", sd2.len1(), sd2.len2());
+
+        //        panic!();
+        //    }
+        //}
 
         sd
     }
@@ -263,10 +300,11 @@ fn play_recursive(decks: &mut Deck, stats: &mut Stats) -> usize {
 
     let mut shortcircuit = false;
     if stats.depth != 0 {
-        let m1 = (0..decks.len1()).map(|i| decks.get(i)).max().unwrap();
-        let m2 = (0..decks.len2()).map(|i| decks.get(i + decks.len1())).max().unwrap();
+        let l1 = decks.len1();
+        let m1 = (0..l1).map(|i| decks.get(i)).max().unwrap();
+        let m2 = (0..decks.len2()).map(|i| decks.get(i + l1)).max().unwrap();
 
-        shortcircuit = m1 > m2 && m1 > decks.len1() as u8;
+        shortcircuit = m1 > m2;
         if shortcircuit {
             stats.shortcircuit_hits += 1;
             return 1;
