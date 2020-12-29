@@ -129,7 +129,7 @@ impl Deck {
         let h1 = (self.a & 0x3F) as u8;
         let h2 = self.get(c1);
 
-        /*let drops = 1 + c1 - h1 as usize;
+        let drops = 1 + c1 - h1 as usize;
 
         match c1 {
             1..=21 => {
@@ -137,12 +137,12 @@ impl Deck {
                 let carrymask = !(u128::MAX << (drops*6));
                 let keepmask3 = u128::MAX << (8 * 6);
 
-                println!("keepmask: {:0128b}", !keepmask);
                 sd.a = (((self.b & carrymask) << ((21 - drops)*6)) & keepmask) | ((self.a >> (drops * 6)) & keepmask) | ((self.a >> 6) & !keepmask);
                 sd.b = ((self.c & carrymask) << ((21 - drops)*6)) | (self.b >> (drops * 6));
                 sd.c = (self.c & keepmask3) | ((self.c & !keepmask3) >> (drops * 6));
             },
-            22..=42 => {*/
+            /*22..=42 => {*/
+            _ => {
                 for i in 0..h1 as usize {
                     sd.set(i, self.get(i + 1));
                 }
@@ -162,10 +162,10 @@ impl Deck {
                 //    ((self.a >> 6) & !keepmask);
                 //sd.b = ((self.c & carrymask) << ((21 - drops)*6)) | (self.b >> (drops * 6));
                 //sd.c = (self.c & keepmask3) | ((self.c & !keepmask3) >> (drops * 6));
-            /*},
-            43..=50 => {},
-            _ => { panic!(); },
-        }*/
+            },
+            //43..=50 => {},
+            //_ => { panic!(); },
+        }
 
         sd.set_len1(h1 as usize);
         sd.set_len2(h2 as usize);
@@ -237,92 +237,12 @@ fn play2(decks: &mut Deck) -> usize {
     }
 }
 
-fn play(deck1: &mut VecDeque<u8>, deck2: &mut VecDeque<u8>) -> usize {
-    while deck1.len() > 0 && deck2.len() > 0 {
-        let c1 = deck1.pop_front().unwrap();
-        let c2 = deck2.pop_front().unwrap();
-
-        if c1 > c2 {
-            deck1.push_back(c1);
-            deck1.push_back(c2);
-        } else {
-            deck2.push_back(c2);
-            deck2.push_back(c1);
-        }
-    }
-
-    if deck1.len() > 0 {
-        1
-    } else {
-        2
-    }
-}
-
 #[derive(Default, Debug)]
 struct Stats {
     depth: usize,
     maxdepth: usize,
     breaks: usize,
     subgames: usize,
-}
-
-fn play_recursive(decks: &mut [(VecDeque<u8>, VecDeque<u8>)], stats: &mut Stats) -> usize {
-    let mut seen = HashSet::new();
-
-    stats.subgames += 1;
-
-    if stats.subgames == 1 {
-        println!("{:?}", decks[0]);
-    }
-
-    if stats.depth > stats.maxdepth {
-        stats.maxdepth = stats.depth;
-    }
-
-    while decks[0].0.len() > 0 && decks[0].1.len() > 0 {
-        let state = (
-            decks[0].0.clone(),
-            decks[0].1.clone(),
-        );
-
-        if seen.contains(&state) {
-            stats.breaks += 1;
-            break;
-        }
-
-        seen.insert(state);
-
-        let c1 = decks[0].0.pop_front().unwrap();
-        let c2 = decks[0].1.pop_front().unwrap();
-
-        stats.depth += 1;
-        let p1_wins_round = if decks[0].0.len() >= c1 as usize && decks[0].1.len() >= c2 as usize {
-            decks[1].0.clear();
-            decks[1].1.clear();
-
-            for i in 0..c1 as usize { let e = decks[0].0[i]; decks[1].0.push_back(e); }
-            for i in 0..c2 as usize { let e = decks[0].1[i]; decks[1].1.push_back(e); }
-
-            play_recursive(&mut decks[1..], stats) == 1
-        } else {
-            c1 > c2
-        };
-        stats.depth -= 1;
-
-        if p1_wins_round {
-            decks[0].0.push_back(c1);
-            decks[0].0.push_back(c2);
-        } else {
-            decks[0].1.push_back(c2);
-            decks[0].1.push_back(c1);
-        }
-    }
-
-    if decks[0].0.len() > 0 {
-        1
-    } else {
-        2
-    }
 }
 
 fn play_recursive2(decks: &mut Deck, stats: &mut Stats) -> usize {
@@ -382,15 +302,15 @@ fn score2(decks: &Deck, winner: usize) -> usize {
 pub fn day22(input: String) -> (usize, usize) {
     let mut decks = input.split("\n\n");
 
-    let deck1 = decks.next().unwrap()[9..].trim().split('\n').map(|x| x.parse::<u8>().unwrap()).collect::<VecDeque<_>>();
-    let deck2 = decks.next().unwrap()[9..].trim().split('\n').map(|x| x.parse::<u8>().unwrap()).collect::<VecDeque<_>>();
+    let deck1 = decks.next().unwrap()[9..].trim().split('\n').map(|x| x.parse::<u8>().unwrap()).collect::<Vec<_>>();
+    let deck2 = decks.next().unwrap()[9..].trim().split('\n').map(|x| x.parse::<u8>().unwrap()).collect::<Vec<_>>();
 
-    let mut d1 = Deck::from((deck1.clone().into_iter().collect::<Vec<u8>>(), deck2.clone().into_iter().collect::<Vec<u8>>()));
+    let mut d1 = Deck::from((deck1.clone(), deck2.clone()));
 
     let winner1o = play2(&mut d1);
     let p1o = score2(&d1, winner1o);
 
-    let mut d2 = Deck::from((deck1.clone().into_iter().collect::<Vec<u8>>(), deck2.clone().into_iter().collect::<Vec<u8>>()));
+    let mut d2 = Deck::from((deck1.clone(), deck2.clone()));
     let mut stats2 = Stats::default();
     let winner2o = play_recursive2(&mut d2, &mut stats2);
     let p2o = score2(&d2, winner2o);
